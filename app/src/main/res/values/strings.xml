@@ -28,8 +28,8 @@
     <string name="placeholder_date">October 24, 2023</string>
 
     <string name="hint_description">Describe how you\'re feeling...</string>
-    <string name="label_date_selector">Check-in Date:</string>
-    <string name="button_change_date">Select Date</string>
+    <string name="label_date_selector">Date:</string>
+    <string name="button_change_date">Change</string>
     <string name="label_description">Notes</string>
     <string name="no_checkin_for_date">No check-in for %1$s</string>
 

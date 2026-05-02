@@ -6,9 +6,12 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
@@ -24,12 +27,19 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
-        appBarConfiguration = AppBarConfiguration(navController.graph)
+        
+        // Setup Top Action Bar
+        appBarConfiguration = AppBarConfiguration(
+            setOf(R.id.FirstFragment, R.id.SecondFragment, R.id.HistoryFragment)
+        )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        binding.fab.setOnClickListener {
-            navController.navigate(R.id.FirstFragment)
-        }
+        // Setup Bottom Navigation
+        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
+        navView.setupWithNavController(navController)
+
+        // Hide FAB as we now have global navigation
+        binding.fab.visibility = View.GONE
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
