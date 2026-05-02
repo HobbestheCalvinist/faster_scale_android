@@ -3,11 +3,15 @@ package com.example.myapplication
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.databinding.ItemHistoryBinding
 
-class HistoryAdapter(private val checkIns: List<CheckIn>) :
-    RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
+class HistoryAdapter(
+    private val checkIns: List<CheckIn>,
+    private val onEditClick: (CheckIn) -> Unit,
+    private val onDeleteClick: (CheckIn) -> Unit
+) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -22,14 +26,37 @@ class HistoryAdapter(private val checkIns: List<CheckIn>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val checkIn = checkIns[position]
+        val context = holder.itemView.context
+        
         holder.binding.textviewHistoryDate.text = checkIn.date
         holder.binding.textviewHistoryScale.text = checkIn.scaleOption
+        
+        // Color coding based on scale
+        val colorRes = when (checkIn.scaleOption) {
+            context.getString(R.string.scale_restoration) -> R.color.color_restoration
+            context.getString(R.string.scale_forgetting) -> R.color.color_forgetting
+            context.getString(R.string.scale_anxiety) -> R.color.color_anxiety
+            context.getString(R.string.scale_speeding) -> R.color.color_speeding
+            context.getString(R.string.scale_ticked_off) -> R.color.color_ticked_off
+            context.getString(R.string.scale_exhausted) -> R.color.color_exhausted
+            context.getString(R.string.scale_relapse) -> R.color.color_relapse
+            else -> R.color.purple_500
+        }
+        holder.binding.textviewHistoryScale.setTextColor(ContextCompat.getColor(context, colorRes))
         
         if (checkIn.description.isNotEmpty()) {
             holder.binding.textviewHistoryDescription.text = checkIn.description
             holder.binding.textviewHistoryDescription.visibility = View.VISIBLE
         } else {
             holder.binding.textviewHistoryDescription.visibility = View.GONE
+        }
+
+        holder.binding.buttonEdit.setOnClickListener {
+            onEditClick(checkIn)
+        }
+
+        holder.binding.buttonDelete.setOnClickListener {
+            onDeleteClick(checkIn)
         }
     }
 

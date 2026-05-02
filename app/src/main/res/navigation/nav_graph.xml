@@ -11,6 +11,12 @@
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
+        <argument
+            android:name="selectedDate"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
         <action
             android:id="@+id/action_FirstFragment_to_HistoryFragment"
             app:destination="@id/HistoryFragment" />

@@ -5,7 +5,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.appcompat.app.AlertDialog
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.launch
@@ -33,12 +37,38 @@ class HistoryFragment : Fragment() {
 
         val db = AppDatabase.getDatabase(requireContext())
         
-        // Observe the database flow
-        lifecycleScope.launch {
-            db.checkInDao().getAllCheckIns().collect { checkIns ->
-                binding.recyclerviewHistory.adapter = HistoryAdapter(checkIns)
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                db.checkInDao().getAllCheckIns().collect { checkIns ->
+                    _binding?.recyclerviewHistory?.adapter = HistoryAdapter(
+                        checkIns = checkIns,
+                        onEditClick = { checkIn ->
+                            val bundle = Bundle().apply {
+                                putString("selectedDate", checkIn.date)
+                            }
+                            findNavController().navigate(R.id.action_HistoryFragment_to_FirstFragment, bundle)
+                        },
+                        onDeleteClick = { checkIn ->
+                            showDeleteConfirmation(checkIn)
+                        }
+                    )
+                }
             }
         }
+    }
+
+    private fun showDeleteConfirmation(checkIn: CheckIn) {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.delete_confirmation_title)
+            .setMessage(getString(R.string.delete_confirmation_message, checkIn.date))
+            .setPositiveButton(R.string.menu_delete) { _, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    val db = AppDatabase.getDatabase(requireContext())
+                    db.checkInDao().deleteCheckIn(checkIn)
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     override fun onDestroyView() {
