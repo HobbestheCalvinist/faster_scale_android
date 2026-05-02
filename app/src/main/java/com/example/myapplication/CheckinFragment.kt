@@ -42,6 +42,18 @@ class CheckinFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Check for passed date argument from History
+        arguments?.getString("selectedDate")?.let { dateStr ->
+            try {
+                dateFormatter.parse(dateStr)?.let { date ->
+                    selectedCalendar.time = date
+                    currentMonthCalendar.time = date
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
         setupCalendar()
         updateDateDisplay()
         loadCheckInForSelectedDate()
@@ -157,10 +169,12 @@ class CheckinFragment : Fragment() {
                 binding.edittextDescription.setText(checkIn.description)
                 // Select appropriate radio button
                 for (i in 0 until binding.radiogroupScale.childCount) {
-                    val rb = binding.radiogroupScale.getChildAt(i) as RadioButton
-                    if (rb.text.toString() == checkIn.scaleOption) {
-                        rb.isChecked = true
-                        break
+                    val view = binding.radiogroupScale.getChildAt(i)
+                    if (view is RadioButton) {
+                        if (view.text.toString() == checkIn.scaleOption) {
+                            view.isChecked = true
+                            break
+                        }
                     }
                 }
             } else {
@@ -182,10 +196,17 @@ class CheckinFragment : Fragment() {
         val description = binding.edittextDescription.text.toString()
         val date = binding.textviewSelectedDate.text.toString()
 
-        val checkIn = CheckIn(date = date, scaleOption = scaleOption, description = description)
-        
         lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
+            // Check if a record already exists for this date to preserve the ID
+            val existingCheckIn = db.checkInDao().getCheckInByDate(date.trim())
+            
+            val checkIn = if (existingCheckIn != null) {
+                existingCheckIn.copy(scaleOption = scaleOption, description = description)
+            } else {
+                CheckIn(date = date, scaleOption = scaleOption, description = description)
+            }
+
             db.checkInDao().insertCheckIn(checkIn)
             Toast.makeText(requireContext(), "Check-in saved!", Toast.LENGTH_SHORT).show()
             refreshProgressCalendar()

@@ -38,4 +38,9 @@
     <string name="reminder_time_label">Reminder Time:</string>
     <string name="button_change_time">Change Time</string>
     <string name="default_reminder_time">08:00 AM</string>
+
+    <string name="menu_edit">Edit</string>
+    <string name="menu_delete">Delete</string>
+    <string name="delete_confirmation_title">Delete Check-in</string>
+    <string name="delete_confirmation_message">Are you sure you want to delete the check-in for %1$s?</string>
 </resources>
