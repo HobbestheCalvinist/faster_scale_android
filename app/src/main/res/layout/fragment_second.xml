@@ -28,10 +28,25 @@
                 app:cardCornerRadius="24dp"
                 app:cardElevation="0dp">
 
-                <CalendarView
-                    android:id="@+id/calendarView"
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <CalendarView
+                        android:id="@+id/calendarView"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_open_marked_calendar"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="16dp"
+                        android:text="View Markers (Full Calendar)"
+                        app:icon="@drawable/ic_calendar" />
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
@@ -91,7 +106,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Back to Check-in"
-                app:icon="@drawable/ic_launcher_foreground" />
+                app:icon="@drawable/ic_history" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
