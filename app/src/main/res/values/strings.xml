@@ -43,4 +43,133 @@
     <string name="menu_delete">Delete</string>
     <string name="delete_confirmation_title">Delete Check-in</string>
     <string name="delete_confirmation_message">Are you sure you want to delete the check-in for %1$s?</string>
+
+    <string name="label_behaviors">Common Behaviors (Tap to add to notes):</string>
+
+    <!-- FASTER Scale Descriptions -->
+    <string name="desc_restoration">Accepting life on God’s terms, with trust, grace, mercy, vulnerability, and gratitude.</string>
+    <string name="desc_forgetting">Start to believe I can handle things on my own. Denying current feelings, fears and problems.</string>
+    <string name="desc_anxiety">A growing background noise of undefined fear; getting energy from emotions. Worrying about things I can’t control.</string>
+    <string name="desc_speeding">Trying to out-run the emotions. Driven by productivity/work. Not taking time to feel or pray.</string>
+    <string name="desc_ticked_off">Getting adrenaline high on anger and aggression. Resentment building up.</string>
+    <string name="desc_exhausted">Loss of physical and emotional energy; coming off the adrenaline high, and onset of depression</string>
+    <string name="desc_relapse">Returning to the place you swore you would never go again. Lying and keeping secrets. Total despair.</string>
+
+    <!-- FASTER Scale Behaviors -->
+    <string-array name="behaviors_restoration">
+        <item>No current secrets</item>
+        <item>Working to resolve problems</item>
+        <item>Identifying fears and feelings</item>
+        <item>Keeping commitments to bible reading, prayer, church</item>
+        <item>Keeping commitments to meetings, prayer, family, church, people, goals, and self</item>
+        <item>Being open and honest</item>
+        <item>Making eye contact</item>
+        <item>Increasing in relationships others</item>
+        <item>True accountability</item>
+    </string-array>
+
+    <string-array name="behaviors_forgetting">
+        <item>Denial</item>
+        <item>Flight</item>
+        <item>A change in important goals (time, energy, thoughts)</item>
+        <item>Secrets / Lying </item>
+        <item>Decreased / Avoiding accountability</item>
+        <item>Sarcasm / Overconfidence</item>
+        <item>Isolating</item>
+        <item>Bored, Overconfidence, Procrastination</item>
+        <item>Neglecting Family / Relationships</item>
+        <item>Neglecting self-care</item>
+        <item>Seeking to control situations and others</item>
+    </string-array>
+
+    <string-array name="behaviors_anxiety">
+        <item>Worry</item>
+        <item>Using profanity</item>
+        <item>Being fearful</item>
+        <item>Being resentful</item>
+        <item>Replaying old, negative thoughts</item>
+        <item>Perfectionism</item>
+        <item>Judging other’s motives / Mind reading</item>
+        <item>Making goals/lists you can’t complete</item>
+        <item>Fantasy</item>
+        <item>Codependent rescuing</item>
+        <item>Sleep problems / Trouble concentrating</item>
+        <item>Gossip / Seeking or creating drama</item>
+        <item>Using over-the-counter medication for pain, sleep or weight control</item>
+        <item>Flirting</item>
+    </string-array>
+
+    <string-array name="behaviors_speeding">
+        <item>Super busy and always in a hurry</item>
+        <item>Workaholic (justifying the work)</item>
+        <item>Can’t relax / Avoiding slowing down</item>
+        <item>Feeling driven</item>
+        <item>Can’t turn off thoughts</item>
+        <item>Skipping meals or Binge eating (usually at night)</item>
+        <item>Overspending / Frequent online shopping</item>
+        <item>Can’t identify own feelings/needs</item>
+        <item>Repetitive negative thoughts</item>
+        <item>Dramatic mood swings</item>
+        <item>Too much caffeine</item>
+        <item>Over-exercising</item>
+        <item>Irritable / Nervousness</item>
+        <item>Difficulty being alone/with people</item>
+        <item>Defensive / Difficulty listening to others</item>
+        <item>Making excuses for having to “do it all”</item>
+    </string-array>
+
+    <string-array name="behaviors_ticked_off">
+        <item>Procrastination causing crisis in money, work, and relationships</item>
+        <item>Increased sarcasm / Bitterness</item>
+        <item>Black and white (all or nothing) thinking</item>
+        <item>Irrational thinking</item>
+        <item>Arguing / Can’t take criticism / Defensive</item>
+        <item> Feeling alone or that nobody understands</item>
+        <item>Overreacting</item>
+        <item>Road rage</item>
+        <item>Constant resentments</item>
+        <item>Pushing others away / Increasing isolation</item>
+        <item>Blaming / Feeling superior / Needing to be right</item>
+        <item>People avoiding you</item>
+        <item>Digestive problems</item>
+        <item>Headaches</item>
+        <item>Obsessive (stuck) thoughts</item>
+        <item>Can’t forgive</item>
+        <item>Using intimidation / Yelling</item>
+    </string-array>
+
+    <string-array name="behaviors_exhausted">
+        <item>Depressed / Hopelessness</item>
+        <item>Panicked / Confused</item>
+        <item>Sleeping too much or too little</item>
+        <item>Can’t cope / Overwhelmed</item>
+        <item>Crying for “no reason”</item>
+        <item>Can’t think / Forgetful</item>
+        <item>Pessimistic</item>
+        <item> Helpless</item>
+        <item>Tired</item>
+        <item>Numb</item>
+        <item>Wanting to run</item>
+        <item>Constant cravings for old coping behaviors</item>
+        <item>Thinking of using sex, drugs, or alcohol</item>
+        <item>Seeking old unhealthy people and places</item>
+        <item>Really isolating / Cancelling Plans / Missing work</item>
+        <item>People angry with you</item>
+        <item>Self-abuse / Suicidal thoughts</item>
+        <item>No goals / Survival mode</item>
+        <item>Not returning phone calls</item>
+        <item>No appetite</item>
+    </string-array>
+
+    <string-array name="behaviors_relapse">
+        <item>Hiding from accountability</item>
+        <item>Feeling like a complete failure</item>
+        <item>Giving up and giving in</item>
+        <item>Out of control</item>
+        <item>Lost in your addiction</item>
+        <item>Lying to yourself and others</item>
+        <item>Feeling you just can’t manage without your coping behaviors, at least for now.</item>
+
+    </string-array>
+
 </resources>

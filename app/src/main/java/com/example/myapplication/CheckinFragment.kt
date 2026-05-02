@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myapplication.databinding.FragmentFirstBinding
+import com.google.android.material.chip.Chip
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -79,6 +80,57 @@ class CheckinFragment : Fragment() {
             currentMonthCalendar.add(Calendar.MONTH, 1)
             refreshProgressCalendar()
         }
+
+        binding.radiogroupScale.setOnCheckedChangeListener { group, checkedId ->
+            val radioButton = group.findViewById<RadioButton>(checkedId)
+            if (radioButton != null) {
+                updateBehaviorsSection(radioButton.text.toString())
+            }
+        }
+    }
+
+    private fun updateBehaviorsSection(scaleOption: String) {
+        binding.layoutBehaviorsSection.visibility = View.VISIBLE
+        binding.chipgroupBehaviors.removeAllViews()
+
+        val (descResId, behaviorsResId) = when (scaleOption) {
+            getString(R.string.scale_restoration) -> Pair(R.string.desc_restoration, R.array.behaviors_restoration)
+            getString(R.string.scale_forgetting) -> Pair(R.string.desc_forgetting, R.array.behaviors_forgetting)
+            getString(R.string.scale_anxiety) -> Pair(R.string.desc_anxiety, R.array.behaviors_anxiety)
+            getString(R.string.scale_speeding) -> Pair(R.string.desc_speeding, R.array.behaviors_speeding)
+            getString(R.string.scale_ticked_off) -> Pair(R.string.desc_ticked_off, R.array.behaviors_ticked_off)
+            getString(R.string.scale_exhausted) -> Pair(R.string.desc_exhausted, R.array.behaviors_exhausted)
+            getString(R.string.scale_relapse) -> Pair(R.string.desc_relapse, R.array.behaviors_relapse)
+            else -> Pair(null, null)
+        }
+
+        if (descResId != null) {
+            binding.textviewScaleDescription.text = getString(descResId)
+        }
+
+        if (behaviorsResId != null) {
+            val behaviors = resources.getStringArray(behaviorsResId)
+            behaviors.forEach { behavior ->
+                val chip = Chip(requireContext()).apply {
+                    text = behavior
+                    isCheckable = false
+                    setOnClickListener {
+                        val currentText = binding.edittextDescription.text.toString()
+                        val behaviorText = "• $behavior"
+                        if (currentText.isEmpty()) {
+                            binding.edittextDescription.setText(behaviorText)
+                        } else if (!currentText.contains(behavior)) {
+                            if (!currentText.endsWith("\n")) {
+                                binding.edittextDescription.append("\n")
+                            }
+                            binding.edittextDescription.append(behaviorText)
+                        }
+                        binding.edittextDescription.setSelection(binding.edittextDescription.text?.length ?: 0)
+                    }
+                }
+                binding.chipgroupBehaviors.addView(chip)
+            }
+        }
     }
 
     private fun setupCalendar() {
@@ -89,7 +141,7 @@ class CheckinFragment : Fragment() {
     private fun refreshProgressCalendar() {
         binding.textviewCalendarMonth.text = monthYearFormatter.format(currentMonthCalendar.time)
         
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
             val allCheckIns = db.checkInDao().getAllCheckIns().first()
             val dateToScaleMap = allCheckIns.associate { it.date.trim() to it.scaleOption }
@@ -161,25 +213,33 @@ class CheckinFragment : Fragment() {
 
     private fun loadCheckInForSelectedDate() {
         val date = binding.textviewSelectedDate.text.toString()
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
             val checkIn = db.checkInDao().getCheckInByDate(date.trim())
             
             if (checkIn != null) {
                 binding.edittextDescription.setText(checkIn.description)
                 // Select appropriate radio button
+                var found = false
                 for (i in 0 until binding.radiogroupScale.childCount) {
                     val view = binding.radiogroupScale.getChildAt(i)
                     if (view is RadioButton) {
                         if (view.text.toString() == checkIn.scaleOption) {
                             view.isChecked = true
+                            updateBehaviorsSection(checkIn.scaleOption)
+                            found = true
                             break
                         }
                     }
                 }
+                if (!found) {
+                    binding.radiogroupScale.clearCheck()
+                    binding.layoutBehaviorsSection.visibility = View.GONE
+                }
             } else {
                 binding.radiogroupScale.clearCheck()
                 binding.edittextDescription.setText("")
+                binding.layoutBehaviorsSection.visibility = View.GONE
             }
         }
     }
@@ -196,7 +256,7 @@ class CheckinFragment : Fragment() {
         val description = binding.edittextDescription.text.toString()
         val date = binding.textviewSelectedDate.text.toString()
 
-        lifecycleScope.launch {
+        viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
             // Check if a record already exists for this date to preserve the ID
             val existingCheckIn = db.checkInDao().getCheckInByDate(date.trim())
