@@ -7,13 +7,10 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.example.myapplication.FirstFragment"
+        android:name="com.example.myapplication.CheckinFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
-        <action
-            android:id="@+id/action_FirstFragment_to_SecondFragment"
-            app:destination="@id/SecondFragment" />
         <action
             android:id="@+id/action_FirstFragment_to_HistoryFragment"
             app:destination="@id/HistoryFragment" />
@@ -21,19 +18,7 @@
             android:id="@+id/action_global_SettingsFragment"
             app:destination="@id/SettingsFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/SecondFragment"
-        android:name="com.example.myapplication.SecondFragment"
-        android:label="@string/second_fragment_label"
-        tools:layout="@layout/fragment_second">
 
-        <action
-            android:id="@+id/action_SecondFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
-        <action
-            android:id="@+id/action_SecondFragment_to_HistoryFragment"
-            app:destination="@id/HistoryFragment" />
-    </fragment>
     <fragment
         android:id="@+id/HistoryFragment"
         android:name="com.example.myapplication.HistoryFragment"
@@ -43,6 +28,7 @@
             android:id="@+id/action_HistoryFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
+
     <fragment
         android:id="@+id/SettingsFragment"
         android:name="com.example.myapplication.SettingsFragment"

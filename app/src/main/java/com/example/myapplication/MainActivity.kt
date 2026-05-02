@@ -28,17 +28,15 @@ class MainActivity : AppCompatActivity() {
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         
-        // Setup Top Action Bar
+        // Updated to reflect the new structure (Calendar is now part of FirstFragment)
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.FirstFragment, R.id.SecondFragment, R.id.HistoryFragment)
+            setOf(R.id.FirstFragment, R.id.HistoryFragment)
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        // Setup Bottom Navigation
         val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         navView.setupWithNavController(navController)
 
-        // Hide FAB as we now have global navigation
         binding.fab.visibility = View.GONE
     }
 

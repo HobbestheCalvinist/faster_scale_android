@@ -6,4 +6,13 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <!-- Scale Colors -->
+    <color name="color_restoration">#4CAF50</color> <!-- Green -->
+    <color name="color_forgetting">#8BC34A</color> <!-- Light Green -->
+    <color name="color_anxiety">#FFEB3B</color> <!-- Yellow -->
+    <color name="color_speeding">#FFC107</color> <!-- Amber -->
+    <color name="color_ticked_off">#FF9800</color> <!-- Orange -->
+    <color name="color_exhausted">#FF5722</color> <!-- Deep Orange -->
+    <color name="color_relapse">#F44336</color> <!-- Red -->
 </resources>
