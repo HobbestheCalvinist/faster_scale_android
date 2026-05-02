@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">Faster Scale Recovery</string>
+    <string name="action_settings">Settings</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="first_fragment_label">Check In</string>
+    <string name="second_fragment_label">Calendar</string>
+    <string name="history_fragment_label">History</string>
+    <string name="settings_fragment_label">Settings</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+
+    <string name="mood_tracker_title">Faster Scale Check In</string>
+    <string name="calendar_title">Check-in Calendar</string>
+    <string name="history_title">Check-in History</string>
+
+    <string name="faster_description">Select where you are on the FASTER scale today:</string>
+    <string name="scale_restoration">Restoration</string>
+    <string name="scale_forgetting">Forgetting Priorities</string>
+    <string name="scale_anxiety">Anxiety</string>
+    <string name="scale_speeding">Speeding Up</string>
+    <string name="scale_ticked_off">Ticked Off</string>
+    <string name="scale_exhausted">Exhausted</string>
+    <string name="scale_relapse">Relapse</string>
+    <string name="save_checkin">Save Check-in</string>
+    <string name="go_to_calendar">Go to Calendar</string>
+    <string name="go_to_history">View History</string>
+
+    <string name="placeholder_date">October 24, 2023</string>
+
+    <string name="hint_description">Describe how you\'re feeling...</string>
+    <string name="label_date_selector">Check-in Date:</string>
+    <string name="button_change_date">Select Date</string>
+    <string name="label_description">Notes</string>
+    <string name="no_checkin_for_date">No check-in for %1$s</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="daily_reminder">Daily Reminder</string>
+    <string name="reminder_time_label">Reminder Time:</string>
+    <string name="button_change_time">Change Time</string>
+    <string name="default_reminder_time">08:00 AM</string>
+</resources>
