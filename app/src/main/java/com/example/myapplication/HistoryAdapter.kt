@@ -10,7 +10,8 @@ import com.example.myapplication.databinding.ItemHistoryBinding
 class HistoryAdapter(
     private val checkIns: List<CheckIn>,
     private val onEditClick: (CheckIn) -> Unit,
-    private val onDeleteClick: (CheckIn) -> Unit
+    private val onDeleteClick: (CheckIn) -> Unit,
+    private val onShareClick: (CheckIn) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -57,6 +58,10 @@ class HistoryAdapter(
 
         holder.binding.buttonDelete.setOnClickListener {
             onDeleteClick(checkIn)
+        }
+
+        holder.binding.buttonShare.setOnClickListener {
+            onShareClick(checkIn)
         }
     }
 

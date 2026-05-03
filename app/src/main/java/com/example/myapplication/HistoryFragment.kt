@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -40,7 +41,7 @@ class HistoryFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 db.checkInDao().getAllCheckIns().collect { checkIns ->
-                    _binding?.recyclerviewHistory?.adapter = HistoryAdapter(
+                    binding.recyclerviewHistory.adapter = HistoryAdapter(
                         checkIns = checkIns,
                         onEditClick = { checkIn ->
                             val bundle = Bundle().apply {
@@ -50,11 +51,59 @@ class HistoryFragment : Fragment() {
                         },
                         onDeleteClick = { checkIn ->
                             showDeleteConfirmation(checkIn)
+                        },
+                        onShareClick = { checkIn ->
+                            shareCheckIn(checkIn)
                         }
                     )
+
+                    binding.buttonShareAll.setOnClickListener {
+                        shareAllHistory(checkIns)
+                    }
                 }
             }
         }
+    }
+
+    private fun shareCheckIn(checkIn: CheckIn) {
+        val shareText = """
+            Faster Scale Check-in
+            Date: ${checkIn.date}
+            Level: ${checkIn.scaleOption}
+            Notes: ${checkIn.description}
+        """.trimIndent()
+
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, shareText)
+            type = "text/plain"
+        }
+
+        val shareIntent = Intent.createChooser(sendIntent, null)
+        startActivity(shareIntent)
+    }
+
+    private fun shareAllHistory(checkIns: List<CheckIn>) {
+        if (checkIns.isEmpty()) return
+
+        val report = StringBuilder("Faster Scale Recovery - Full History\n\n")
+        checkIns.forEach { checkIn ->
+            report.append("Date: ${checkIn.date}\n")
+            report.append("Level: ${checkIn.scaleOption}\n")
+            if (checkIn.description.isNotBlank()) {
+                report.append("Notes: ${checkIn.description}\n")
+            }
+            report.append("-------------------\n")
+        }
+
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, report.toString())
+            type = "text/plain"
+        }
+
+        val shareIntent = Intent.createChooser(sendIntent, "Share History Report")
+        startActivity(shareIntent)
     }
 
     private fun showDeleteConfirmation(checkIn: CheckIn) {

@@ -29,7 +29,7 @@ class CheckinFragment : Fragment() {
     private val currentMonthCalendar = Calendar.getInstance()
     
     private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
-    private val monthYearFormatter = SimpleDateFormat("MMMM yyyy", Locale.US)
+    private val monthYearFormatter = SimpleDateFormat("MMMM dd", Locale.US)
 
     private val scaleOptions by lazy {
         listOf(
@@ -80,19 +80,19 @@ class CheckinFragment : Fragment() {
         }
 
         binding.buttonPrevMonth.setOnClickListener {
-            currentMonthCalendar.add(Calendar.MONTH, -1)
+            currentMonthCalendar.add(Calendar.DAY_OF_YEAR, -14)
             refreshProgressCalendar()
         }
 
         binding.buttonNextMonth.setOnClickListener {
-            currentMonthCalendar.add(Calendar.MONTH, 1)
+            currentMonthCalendar.add(Calendar.DAY_OF_YEAR, 14)
             refreshProgressCalendar()
         }
     }
 
     private fun setupDropdown() {
         val displayOptions = scaleOptions.map { "${it.first}: ${it.second}" }
-        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, displayOptions)
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_dropdown_multiline, displayOptions)
         binding.autocompletetextviewScale.setAdapter(adapter)
 
         binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
@@ -114,10 +114,6 @@ class CheckinFragment : Fragment() {
             getString(R.string.scale_exhausted) -> Pair(R.string.desc_exhausted, R.array.behaviors_exhausted)
             getString(R.string.scale_relapse) -> Pair(R.string.desc_relapse, R.array.behaviors_relapse)
             else -> Pair(null, null)
-        }
-
-        if (descResId != null) {
-            binding.textviewScaleDescription.text = getString(descResId)
         }
 
         if (behaviorsResId != null) {
@@ -151,7 +147,11 @@ class CheckinFragment : Fragment() {
     }
 
     private fun refreshProgressCalendar() {
-        binding.textviewCalendarMonth.text = monthYearFormatter.format(currentMonthCalendar.time)
+        val startCal = currentMonthCalendar.clone() as Calendar
+        startCal.add(Calendar.DAY_OF_YEAR, -13)
+        val endCal = currentMonthCalendar.clone() as Calendar
+        
+        binding.textviewCalendarMonth.text = "${monthYearFormatter.format(startCal.time)} - ${monthYearFormatter.format(endCal.time)}"
         
         viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
@@ -164,27 +164,19 @@ class CheckinFragment : Fragment() {
             val todayString = dateFormatter.format(today.time)
             val selectedString = dateFormatter.format(selectedCalendar.time)
 
-            val cal = currentMonthCalendar.clone() as Calendar
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
-            val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-
-            for (i in 0 until firstDayOfWeek) {
-                days.add(CalendarDay("", null))
-            }
-
-            for (i in 1..daysInMonth) {
-                cal.set(Calendar.DAY_OF_MONTH, i)
+            val cal = startCal.clone() as Calendar
+            for (i in 0 until 14) {
                 val dateString = dateFormatter.format(cal.time)
                 days.add(
                     CalendarDay(
-                        dayOfMonth = i.toString(),
+                        dayOfMonth = cal.get(Calendar.DAY_OF_MONTH).toString(),
                         dateString = dateString,
                         scaleOption = dateToScaleMap[dateString],
                         isSelected = dateString == selectedString,
                         isToday = dateString == todayString
                     )
                 )
+                cal.add(Calendar.DAY_OF_YEAR, 1)
             }
 
             binding.recyclerviewCalendar.adapter = CalendarAdapter(days) { day ->

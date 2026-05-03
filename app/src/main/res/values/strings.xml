@@ -43,6 +43,7 @@
 
     <string name="menu_edit">Edit</string>
     <string name="menu_delete">Delete</string>
+    <string name="menu_share">Share</string>
     <string name="delete_confirmation_title">Delete Check-in</string>
     <string name="delete_confirmation_message">Are you sure you want to delete the check-in for %1$s?</string>
 
