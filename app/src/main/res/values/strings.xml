@@ -6,12 +6,14 @@
     <string name="second_fragment_label">Calendar</string>
     <string name="history_fragment_label">History</string>
     <string name="settings_fragment_label">Settings</string>
+    <string name="call_schedule_fragment_label">Call Schedule</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
     <string name="mood_tracker_title">Faster Scale Check In</string>
     <string name="calendar_title">Check-in Calendar</string>
     <string name="history_title">Check-in History</string>
+    <string name="call_schedule_title">Call Schedule</string>
 
     <string name="faster_description">Select where you are on the FASTER scale today:</string>
     <string name="scale_restoration">Restoration</string>
@@ -169,7 +171,18 @@
         <item>Lost in your addiction</item>
         <item>Lying to yourself and others</item>
         <item>Feeling you just can’t manage without your coping behaviors, at least for now.</item>
-
     </string-array>
 
+    <string name="title_add_call_schedule">Add Call Schedule</string>
+    <string name="title_edit_call_schedule">Edit Call Schedule</string>
+    <string name="label_day_of_week">Day of Week</string>
+    <string name="label_time">Time</string>
+    <string name="label_contact">Contact</string>
+    <string name="action_save">Save</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="no_contacts_available">No trusted contacts found. Please add them in Settings.</string>
+    <string name="delete_call_schedule_confirmation">Are you sure you want to delete this call schedule?</string>
+    <string name="time_not_set">Not set</string>
+    <string name="call_schedule_item_format">%1$s at %2$s</string>
+    <string name="call_schedule_contact_format">Contact: %1$s</string>
 </resources>

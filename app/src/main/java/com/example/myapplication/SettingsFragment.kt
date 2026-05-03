@@ -1,18 +1,31 @@
 package com.example.myapplication
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentSettingsBinding
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.*
 
 class SettingsFragment : Fragment() {
@@ -20,6 +33,20 @@ class SettingsFragment : Fragment() {
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var db: AppDatabase
+    private lateinit var contactAdapter: ContactAdapter
+
+    private val contactPickerLauncher = registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
+        uri?.let { processSelectedContact(it) }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        if (isGranted) {
+            contactPickerLauncher.launch(null)
+        } else {
+            Toast.makeText(requireContext(), "Permission denied to read contacts", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,12 +59,17 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        db = AppDatabase.getDatabase(requireContext())
 
+        setupReminderSettings()
+        setupContactSettings()
+    }
+
+    private fun setupReminderSettings() {
         val isReminderEnabled = sharedPreferences.getBoolean("reminder_enabled", false)
         val hour = sharedPreferences.getInt("reminder_hour", 8)
         val minute = sharedPreferences.getInt("reminder_minute", 0)
 
-        // Set initial state without triggering listener
         binding.switchReminder.isChecked = isReminderEnabled
         updateTimeText(hour, minute)
 
@@ -62,6 +94,99 @@ class SettingsFragment : Fragment() {
                 }
             }, hour, minute, false).show()
         }
+    }
+
+    private fun setupContactSettings() {
+        contactAdapter = ContactAdapter { contact ->
+            showDeleteContactConfirmation(contact)
+        }
+
+        binding.recyclerviewContacts.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = contactAdapter
+        }
+
+        binding.buttonAddContact.setOnClickListener {
+            checkPermissionAndPickContact()
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            db.contactDao().getAllContacts().collect { contacts ->
+                contactAdapter.submitList(contacts)
+            }
+        }
+    }
+
+    private fun checkPermissionAndPickContact() {
+        when {
+            ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED -> {
+                contactPickerLauncher.launch(null)
+            }
+            else -> {
+                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            }
+        }
+    }
+
+    private fun processSelectedContact(contactUri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val contact = getContactDetails(contactUri)
+            if (contact != null) {
+                db.contactDao().insertContact(contact)
+            } else {
+                Toast.makeText(requireContext(), "Could not retrieve contact details or phone number", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private suspend fun getContactDetails(contactUri: Uri): Contact? = withContext(Dispatchers.IO) {
+        var name: String? = null
+        var phoneNumber: String? = null
+        val contentResolver = requireContext().contentResolver
+
+        // Get Name
+        contentResolver.query(contactUri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
+                if (nameIndex != -1) name = cursor.getString(nameIndex)
+                
+                val idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID)
+                if (idIndex != -1) {
+                    val contactId = cursor.getString(idIndex)
+                    
+                    // Get Phone Number
+                    contentResolver.query(
+                        ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                        null,
+                        "${ContactsContract.CommonDataKinds.Phone.CONTACT_ID} = ?",
+                        arrayOf(contactId),
+                        null
+                    )?.use { phoneCursor ->
+                        if (phoneCursor.moveToFirst()) {
+                            val phoneIndex = phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                            if (phoneIndex != -1) phoneNumber = phoneCursor.getString(phoneIndex)
+                        }
+                    }
+                }
+            }
+        }
+
+        if (name != null && phoneNumber != null) {
+            Contact(name = name!!, phoneNumber = phoneNumber!!)
+        } else null
+    }
+
+    private fun showDeleteContactConfirmation(contact: Contact) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Delete Contact")
+            .setMessage("Are you sure you want to delete ${contact.name}?")
+            .setPositiveButton("Delete") { _, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    db.contactDao().deleteContact(contact)
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun updateTimeText(hour: Int, minute: Int) {
@@ -97,7 +222,6 @@ class SettingsFragment : Fragment() {
                     pendingIntent
                 )
             } else {
-                // Fallback to inexact alarm if permission is missing to prevent crash
                 alarmManager.setAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
                     calendar.timeInMillis,
