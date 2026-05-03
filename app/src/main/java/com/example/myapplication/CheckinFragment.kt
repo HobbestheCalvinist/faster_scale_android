@@ -6,10 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myapplication.databinding.FragmentFirstBinding
 import com.google.android.material.chip.Chip
@@ -31,6 +30,18 @@ class CheckinFragment : Fragment() {
     
     private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
     private val monthYearFormatter = SimpleDateFormat("MMMM yyyy", Locale.US)
+
+    private val scaleOptions by lazy {
+        listOf(
+            getString(R.string.scale_restoration) to getString(R.string.desc_restoration),
+            getString(R.string.scale_forgetting) to getString(R.string.desc_forgetting),
+            getString(R.string.scale_anxiety) to getString(R.string.desc_anxiety),
+            getString(R.string.scale_speeding) to getString(R.string.desc_speeding),
+            getString(R.string.scale_ticked_off) to getString(R.string.desc_ticked_off),
+            getString(R.string.scale_exhausted) to getString(R.string.desc_exhausted),
+            getString(R.string.scale_relapse) to getString(R.string.desc_relapse)
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,6 +67,7 @@ class CheckinFragment : Fragment() {
         }
 
         setupCalendar()
+        setupDropdown()
         updateDateDisplay()
         loadCheckInForSelectedDate()
 
@@ -67,10 +79,6 @@ class CheckinFragment : Fragment() {
             saveCheckIn()
         }
 
-        binding.buttonToHistory.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_HistoryFragment)
-        }
-
         binding.buttonPrevMonth.setOnClickListener {
             currentMonthCalendar.add(Calendar.MONTH, -1)
             refreshProgressCalendar()
@@ -80,12 +88,16 @@ class CheckinFragment : Fragment() {
             currentMonthCalendar.add(Calendar.MONTH, 1)
             refreshProgressCalendar()
         }
+    }
 
-        binding.radiogroupScale.setOnCheckedChangeListener { group, checkedId ->
-            val radioButton = group.findViewById<RadioButton>(checkedId)
-            if (radioButton != null) {
-                updateBehaviorsSection(radioButton.text.toString())
-            }
+    private fun setupDropdown() {
+        val displayOptions = scaleOptions.map { "${it.first}: ${it.second}" }
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, displayOptions)
+        binding.autocompletetextviewScale.setAdapter(adapter)
+
+        binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
+            val selectedOption = scaleOptions[position].first
+            updateBehaviorsSection(selectedOption)
         }
     }
 
@@ -219,25 +231,17 @@ class CheckinFragment : Fragment() {
             
             if (checkIn != null) {
                 binding.edittextDescription.setText(checkIn.description)
-                // Select appropriate radio button
-                var found = false
-                for (i in 0 until binding.radiogroupScale.childCount) {
-                    val view = binding.radiogroupScale.getChildAt(i)
-                    if (view is RadioButton) {
-                        if (view.text.toString() == checkIn.scaleOption) {
-                            view.isChecked = true
-                            updateBehaviorsSection(checkIn.scaleOption)
-                            found = true
-                            break
-                        }
-                    }
-                }
-                if (!found) {
-                    binding.radiogroupScale.clearCheck()
+                
+                val displayValue = scaleOptions.find { it.first == checkIn.scaleOption }?.let { "${it.first}: ${it.second}" }
+                if (displayValue != null) {
+                    binding.autocompletetextviewScale.setText(displayValue, false)
+                    updateBehaviorsSection(checkIn.scaleOption)
+                } else {
+                    binding.autocompletetextviewScale.setText("", false)
                     binding.layoutBehaviorsSection.visibility = View.GONE
                 }
             } else {
-                binding.radiogroupScale.clearCheck()
+                binding.autocompletetextviewScale.setText("", false)
                 binding.edittextDescription.setText("")
                 binding.layoutBehaviorsSection.visibility = View.GONE
             }
@@ -245,14 +249,15 @@ class CheckinFragment : Fragment() {
     }
 
     private fun saveCheckIn() {
-        val selectedId = binding.radiogroupScale.checkedRadioButtonId
-        if (selectedId == -1) {
+        val selectedText = binding.autocompletetextviewScale.text.toString()
+        if (selectedText.isBlank()) {
             Toast.makeText(requireContext(), "Please select a scale option", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val radioButton = binding.root.findViewById<RadioButton>(selectedId)
-        val scaleOption = radioButton.text.toString()
+        // Extract the title (e.g. "Restoration") from "Restoration: Accepting life..."
+        val scaleOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: selectedText
+
         val description = binding.edittextDescription.text.toString()
         val date = binding.textviewSelectedDate.text.toString()
 
