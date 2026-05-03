@@ -25,7 +25,7 @@ interface CallScheduleDao {
     fun getAllSchedules(): Flow<List<CallSchedule>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSchedule(schedule: CallSchedule)
+    suspend fun insertSchedule(schedule: CallSchedule): Long
 
     @Update
     suspend fun updateSchedule(schedule: CallSchedule)

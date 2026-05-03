@@ -47,7 +47,28 @@ class CallScheduleFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.callScheduleDao().getAllSchedules().collect { schedules ->
-                adapter.submitList(schedules)
+                // Sort for UI consistency as previously implemented
+                val sortedSchedules = schedules.sortedWith(compareBy<CallSchedule> {
+                    when (it.dayOfWeek) {
+                        "Monday" -> 1
+                        "Tuesday" -> 2
+                        "Wednesday" -> 3
+                        "Thursday" -> 4
+                        "Friday" -> 5
+                        "Saturday" -> 6
+                        "Sunday" -> 7
+                        else -> 8
+                    }
+                }.thenBy {
+                    val isPm = it.time.endsWith("PM")
+                    val parts = it.time.split(":", " ")
+                    var hour = parts[0].toInt()
+                    if (isPm && hour != 12) hour += 12
+                    if (!isPm && hour == 12) hour = 0
+                    val minute = parts[1].toInt()
+                    hour * 60 + minute
+                })
+                adapter.submitList(sortedSchedules)
             }
         }
     }
@@ -129,8 +150,12 @@ class CallScheduleFragment : Fragment() {
                             )
                             if (isEdit) {
                                 db.callScheduleDao().updateSchedule(newSchedule)
+                                AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule)
                             } else {
-                                db.callScheduleDao().insertSchedule(newSchedule)
+                                // For new insertions, we need the auto-generated ID to schedule the alarm correctly.
+                                // We'll query it back or perform insertion and then schedule.
+                                val id = db.callScheduleDao().insertSchedule(newSchedule)
+                                AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule.copy(id = id.toInt()))
                             }
                         }
                     }
@@ -146,6 +171,7 @@ class CallScheduleFragment : Fragment() {
             .setMessage(R.string.delete_call_schedule_confirmation)
             .setPositiveButton(R.string.menu_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
+                    AlarmHelper.cancelCallAlarm(requireContext(), schedule.id)
                     db.callScheduleDao().deleteSchedule(schedule)
                 }
             }
