@@ -170,7 +170,9 @@
                         android:hint="Select FASTER Scale"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/layout_date_picker">
+                        app:layout_constraintTop_toBottomOf="@id/layout_date_picker"
+                        app:startIconContentDescription="Clear selection"
+                        app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
 
                         <AutoCompleteTextView
                             android:id="@+id/autocompletetextview_scale"
@@ -217,6 +219,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="24dp"
                         android:hint="@string/hint_description"
+                        app:endIconMode="clear_text"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section">

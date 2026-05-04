@@ -3,8 +3,10 @@
     android:id="@android:id/text1"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:ellipsize="none"
     android:padding="16dp"
-    android:singleLine="false"
     android:textAppearance="?attr/textAppearanceBodyLarge"
-    android:textColor="?attr/colorOnSurface" />
+    android:textColor="?attr/colorOnSurface"
+    android:singleLine="false"
+    android:maxLines="10"
+    android:ellipsize="none"
+    android:scrollHorizontally="false" />

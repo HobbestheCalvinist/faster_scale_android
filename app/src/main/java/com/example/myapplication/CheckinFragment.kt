@@ -99,6 +99,12 @@ class CheckinFragment : Fragment() {
             val selectedOption = scaleOptions[position].first
             updateBehaviorsSection(selectedOption)
         }
+
+        binding.textinputlayoutScale.setStartIconOnClickListener {
+            binding.autocompletetextviewScale.setText("", false)
+            binding.layoutBehaviorsSection.visibility = View.GONE
+            binding.autocompletetextviewScale.clearFocus()
+        }
     }
 
     private fun updateBehaviorsSection(scaleOption: String) {
