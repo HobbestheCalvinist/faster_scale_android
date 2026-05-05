@@ -9,8 +9,10 @@ import com.example.myapplication.databinding.ItemHistoryBinding
 
 class HistoryAdapter(
     private val checkIns: List<CheckIn>,
+    private val isTrustedOnly: Boolean,
     private val onEditClick: (CheckIn) -> Unit,
-    private val onDeleteClick: (CheckIn) -> Unit
+    private val onDeleteClick: (CheckIn) -> Unit,
+    private val onShareClick: (CheckIn) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
 
     class ViewHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
@@ -57,6 +59,17 @@ class HistoryAdapter(
 
         holder.binding.buttonDelete.setOnClickListener {
             onDeleteClick(checkIn)
+        }
+
+        holder.binding.buttonShare.setOnClickListener {
+            onShareClick(checkIn)
+        }
+
+        // Update icon based on sharing mode
+        if (isTrustedOnly) {
+            holder.binding.buttonShare.setImageResource(android.R.drawable.ic_menu_send)
+        } else {
+            holder.binding.buttonShare.setImageResource(android.R.drawable.ic_menu_share)
         }
     }
 

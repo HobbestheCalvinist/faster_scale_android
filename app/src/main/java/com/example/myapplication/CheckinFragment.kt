@@ -6,10 +6,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myapplication.databinding.FragmentFirstBinding
 import com.google.android.material.chip.Chip
@@ -30,7 +29,19 @@ class CheckinFragment : Fragment() {
     private val currentMonthCalendar = Calendar.getInstance()
     
     private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
-    private val monthYearFormatter = SimpleDateFormat("MMMM yyyy", Locale.US)
+    private val monthYearFormatter = SimpleDateFormat("MMMM dd", Locale.US)
+
+    private val scaleOptions by lazy {
+        listOf(
+            getString(R.string.scale_restoration) to getString(R.string.desc_restoration),
+            getString(R.string.scale_forgetting) to getString(R.string.desc_forgetting),
+            getString(R.string.scale_anxiety) to getString(R.string.desc_anxiety),
+            getString(R.string.scale_speeding) to getString(R.string.desc_speeding),
+            getString(R.string.scale_ticked_off) to getString(R.string.desc_ticked_off),
+            getString(R.string.scale_exhausted) to getString(R.string.desc_exhausted),
+            getString(R.string.scale_relapse) to getString(R.string.desc_relapse)
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,6 +67,7 @@ class CheckinFragment : Fragment() {
         }
 
         setupCalendar()
+        setupDropdown()
         updateDateDisplay()
         loadCheckInForSelectedDate()
 
@@ -67,25 +79,41 @@ class CheckinFragment : Fragment() {
             saveCheckIn()
         }
 
-        binding.buttonToHistory.setOnClickListener {
-            findNavController().navigate(R.id.action_FirstFragment_to_HistoryFragment)
-        }
-
         binding.buttonPrevMonth.setOnClickListener {
-            currentMonthCalendar.add(Calendar.MONTH, -1)
+            currentMonthCalendar.add(Calendar.DAY_OF_YEAR, -14)
             refreshProgressCalendar()
         }
 
         binding.buttonNextMonth.setOnClickListener {
-            currentMonthCalendar.add(Calendar.MONTH, 1)
+            currentMonthCalendar.add(Calendar.DAY_OF_YEAR, 14)
             refreshProgressCalendar()
         }
 
-        binding.radiogroupScale.setOnCheckedChangeListener { group, checkedId ->
-            val radioButton = group.findViewById<RadioButton>(checkedId)
-            if (radioButton != null) {
-                updateBehaviorsSection(radioButton.text.toString())
+        binding.textinputlayoutDescription.setStartIconOnClickListener {
+            binding.edittextDescription.setText("")
+        }
+    }
+
+    private fun setupDropdown() {
+        val displayOptions = scaleOptions.map { "${it.first}: ${it.second}" }
+        val adapter = ArrayAdapter(requireContext(), R.layout.item_dropdown_multiline, displayOptions)
+        binding.autocompletetextviewScale.setAdapter(adapter)
+
+        binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
+            // Use adapter.getItem to get the correct text even if the list is filtered
+            val selectedText = adapter.getItem(position) ?: ""
+            val selectedOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: ""
+            if (selectedOption.isNotEmpty()) {
+                updateBehaviorsSection(selectedOption)
             }
+        }
+
+        binding.textinputlayoutScale.setStartIconOnClickListener {
+            binding.autocompletetextviewScale.setText("", false)
+            // Re-setting the adapter resets the internal filter so all options show up next time
+            binding.autocompletetextviewScale.setAdapter(adapter)
+            binding.layoutBehaviorsSection.visibility = View.GONE
+            binding.autocompletetextviewScale.clearFocus()
         }
     }
 
@@ -102,10 +130,6 @@ class CheckinFragment : Fragment() {
             getString(R.string.scale_exhausted) -> Pair(R.string.desc_exhausted, R.array.behaviors_exhausted)
             getString(R.string.scale_relapse) -> Pair(R.string.desc_relapse, R.array.behaviors_relapse)
             else -> Pair(null, null)
-        }
-
-        if (descResId != null) {
-            binding.textviewScaleDescription.text = getString(descResId)
         }
 
         if (behaviorsResId != null) {
@@ -139,7 +163,11 @@ class CheckinFragment : Fragment() {
     }
 
     private fun refreshProgressCalendar() {
-        binding.textviewCalendarMonth.text = monthYearFormatter.format(currentMonthCalendar.time)
+        val startCal = currentMonthCalendar.clone() as Calendar
+        startCal.add(Calendar.DAY_OF_YEAR, -13)
+        val endCal = currentMonthCalendar.clone() as Calendar
+        
+        binding.textviewCalendarMonth.text = "${monthYearFormatter.format(startCal.time)} - ${monthYearFormatter.format(endCal.time)}"
         
         viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
@@ -152,27 +180,19 @@ class CheckinFragment : Fragment() {
             val todayString = dateFormatter.format(today.time)
             val selectedString = dateFormatter.format(selectedCalendar.time)
 
-            val cal = currentMonthCalendar.clone() as Calendar
-            cal.set(Calendar.DAY_OF_MONTH, 1)
-            val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - 1
-            val daysInMonth = cal.getActualMaximum(Calendar.DAY_OF_MONTH)
-
-            for (i in 0 until firstDayOfWeek) {
-                days.add(CalendarDay("", null))
-            }
-
-            for (i in 1..daysInMonth) {
-                cal.set(Calendar.DAY_OF_MONTH, i)
+            val cal = startCal.clone() as Calendar
+            for (i in 0 until 14) {
                 val dateString = dateFormatter.format(cal.time)
                 days.add(
                     CalendarDay(
-                        dayOfMonth = i.toString(),
+                        dayOfMonth = cal.get(Calendar.DAY_OF_MONTH).toString(),
                         dateString = dateString,
                         scaleOption = dateToScaleMap[dateString],
                         isSelected = dateString == selectedString,
                         isToday = dateString == todayString
                     )
                 )
+                cal.add(Calendar.DAY_OF_YEAR, 1)
             }
 
             binding.recyclerviewCalendar.adapter = CalendarAdapter(days) { day ->
@@ -219,25 +239,27 @@ class CheckinFragment : Fragment() {
             
             if (checkIn != null) {
                 binding.edittextDescription.setText(checkIn.description)
-                // Select appropriate radio button
-                var found = false
-                for (i in 0 until binding.radiogroupScale.childCount) {
-                    val view = binding.radiogroupScale.getChildAt(i)
-                    if (view is RadioButton) {
-                        if (view.text.toString() == checkIn.scaleOption) {
-                            view.isChecked = true
-                            updateBehaviorsSection(checkIn.scaleOption)
-                            found = true
-                            break
-                        }
-                    }
-                }
-                if (!found) {
-                    binding.radiogroupScale.clearCheck()
+                
+                val displayValue = scaleOptions.find { it.first == checkIn.scaleOption }?.let { "${it.first}: ${it.second}" }
+                if (displayValue != null) {
+                    binding.autocompletetextviewScale.setText(displayValue, false)
+                    // Reset filter state so all options are available in the dropdown
+                    val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<String>
+                    binding.autocompletetextviewScale.setAdapter(adapter)
+                    binding.autocompletetextviewScale.setText(displayValue, false)
+                    
+                    updateBehaviorsSection(checkIn.scaleOption)
+                } else {
+                    binding.autocompletetextviewScale.setText("", false)
                     binding.layoutBehaviorsSection.visibility = View.GONE
                 }
             } else {
-                binding.radiogroupScale.clearCheck()
+                binding.autocompletetextviewScale.setText("", false)
+                // Reset filter state
+                val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<String>
+                binding.autocompletetextviewScale.setAdapter(adapter)
+                binding.autocompletetextviewScale.setText("", false)
+
                 binding.edittextDescription.setText("")
                 binding.layoutBehaviorsSection.visibility = View.GONE
             }
@@ -245,14 +267,15 @@ class CheckinFragment : Fragment() {
     }
 
     private fun saveCheckIn() {
-        val selectedId = binding.radiogroupScale.checkedRadioButtonId
-        if (selectedId == -1) {
+        val selectedText = binding.autocompletetextviewScale.text.toString()
+        if (selectedText.isBlank()) {
             Toast.makeText(requireContext(), "Please select a scale option", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val radioButton = binding.root.findViewById<RadioButton>(selectedId)
-        val scaleOption = radioButton.text.toString()
+        // Extract the title (e.g. "Restoration") from "Restoration: Accepting life..."
+        val scaleOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: selectedText
+
         val description = binding.edittextDescription.text.toString()
         val date = binding.textviewSelectedDate.text.toString()
 

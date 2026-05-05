@@ -40,4 +40,10 @@
         android:name="com.example.myapplication.SettingsFragment"
         android:label="@string/settings_fragment_label"
         tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/CallScheduleFragment"
+        android:name="com.example.myapplication.CallScheduleFragment"
+        android:label="@string/call_schedule_fragment_label"
+        tools:layout="@layout/fragment_call_schedule" />
 </navigation>

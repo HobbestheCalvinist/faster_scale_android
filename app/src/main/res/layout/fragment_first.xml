@@ -35,7 +35,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="12dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -48,48 +48,36 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold"
-                            tools:text="October 2023" />
+                            tools:text="Last 2 Weeks" />
 
                         <ImageButton
                             android:id="@+id/button_prev_month"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Previous Month"
+                            android:contentDescription="Previous"
                             android:src="@android:drawable/ic_media_previous"
                             app:tint="?attr/colorPrimary" />
 
                         <ImageButton
                             android:id="@+id/button_next_month"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
                             android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Next Month"
+                            android:contentDescription="Next"
                             android:src="@android:drawable/ic_media_next"
                             app:tint="?attr/colorPrimary" />
                     </LinearLayout>
-
-                    <GridLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:columnCount="7">
-                        <TextView style="@style/CalendarDayHeader" android:text="S" />
-                        <TextView style="@style/CalendarDayHeader" android:text="M" />
-                        <TextView style="@style/CalendarDayHeader" android:text="T" />
-                        <TextView style="@style/CalendarDayHeader" android:text="W" />
-                        <TextView style="@style/CalendarDayHeader" android:text="T" />
-                        <TextView style="@style/CalendarDayHeader" android:text="F" />
-                        <TextView style="@style/CalendarDayHeader" android:text="S" />
-                    </GridLayout>
 
                     <androidx.recyclerview.widget.RecyclerView
                         android:id="@+id/recyclerview_calendar"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false"
+                        tools:itemCount="14"
                         tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                         tools:listitem="@layout/item_calendar_day"
                         tools:spanCount="7" />
@@ -98,12 +86,32 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
+                        android:layout_marginTop="12dp"
                         android:gravity="center"
                         android:orientation="horizontal">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Restoration" android:textColor="@color/color_restoration" android:textSize="11sp" android:layout_marginEnd="8dp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Anxiety" android:textColor="@color/color_anxiety" android:textSize="11sp" android:layout_marginEnd="8dp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="● Relapse" android:textColor="@color/color_relapse" android:textSize="11sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="● Restoration"
+                            android:textColor="@color/color_restoration"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:text="● Anxiety"
+                            android:textColor="@color/color_anxiety"
+                            android:textSize="12sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="● Relapse"
+                            android:textColor="@color/color_relapse"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -153,106 +161,55 @@
                             android:text="@string/button_change_date" />
                     </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/textview_description_label"
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/textinputlayout_scale"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="24dp"
-                        android:text="@string/faster_description"
-                        android:textAppearance="?attr/textAppearanceTitleSmall"
+                        android:hint="Select FASTER Scale"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/layout_date_picker" />
+                        app:layout_constraintTop_toBottomOf="@id/layout_date_picker"
+                        app:startIconContentDescription="Clear selection"
+                        app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
 
-                    <RadioGroup
-                        android:id="@+id/radiogroup_scale"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/textview_description_label">
-
-                        <RadioButton
-                            android:id="@+id/radio_restoration"
+                        <AutoCompleteTextView
+                            android:id="@+id/autocompletetextview_scale"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/scale_restoration" />
-
-                        <RadioButton
-                            android:id="@+id/radio_forgetting"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scale_forgetting" />
-
-                        <RadioButton
-                            android:id="@+id/radio_anxiety"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scale_anxiety" />
-
-                        <RadioButton
-                            android:id="@+id/radio_speeding"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scale_speeding" />
-
-                        <RadioButton
-                            android:id="@+id/radio_ticked"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scale_ticked_off" />
-
-                        <RadioButton
-                            android:id="@+id/radio_exhausted"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scale_exhausted" />
-
-                        <RadioButton
-                            android:id="@+id/radio_relapse"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/scale_relapse" />
-                    </RadioGroup>
+                            android:inputType="none"
+                            android:paddingTop="16dp"
+                            android:paddingBottom="16dp"
+                            android:singleLine="false" />
+                    </com.google.android.material.textfield.TextInputLayout>
 
                     <!-- Section that opens up -->
                     <LinearLayout
                         android:id="@+id/layout_behaviors_section"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
                         android:orientation="vertical"
                         android:visibility="gone"
-                        android:layout_marginTop="16dp"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/radiogroup_scale">
-
-                        <TextView
-                            android:id="@+id/textview_scale_description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
-                            android:padding="8dp"
-                            android:background="?attr/colorSurfaceVariant"
-                            android:textColor="?attr/colorOnSurfaceVariant"
-                            android:layout_marginBottom="12dp"
-                            tools:text="Description goes here..." />
+                        app:layout_constraintTop_toBottomOf="@id/textinputlayout_scale">
 
                         <TextView
                             android:id="@+id/textview_behaviors_label"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginBottom="8dp"
                             android:text="@string/label_behaviors"
-                            android:textAppearance="?attr/textAppearanceTitleSmall"
-                            android:layout_marginBottom="8dp" />
+                            android:textAppearance="?attr/textAppearanceTitleSmall" />
 
                         <com.google.android.material.chip.ChipGroup
                             android:id="@+id/chipgroup_behaviors"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            app:chipSpacingVertical="4dp"
-                            app:chipSpacingHorizontal="8dp" />
+                            app:chipSpacingHorizontal="8dp"
+                            app:chipSpacingVertical="4dp" />
                     </LinearLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
@@ -264,7 +221,9 @@
                         android:hint="@string/hint_description"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section">
+                        app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section"
+                        app:startIconContentDescription="Clear text"
+                        app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edittext_description"
@@ -272,7 +231,7 @@
                             android:layout_height="wrap_content"
                             android:gravity="top"
                             android:inputType="textMultiLine"
-                            android:minLines="4" />
+                            android:minLines="5" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.button.MaterialButton
@@ -286,16 +245,6 @@
                         app:iconGravity="textStart"
                         app:iconSize="24dp"
                         app:layout_constraintTop_toBottomOf="@id/textinputlayout_description" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_to_history"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:text="@string/go_to_history"
-                        app:icon="@drawable/ic_history"
-                        app:layout_constraintTop_toBottomOf="@id/button_save" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
