@@ -5,11 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class], version = 4, exportSchema = false)
+@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class], version = 9, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun checkInDao(): CheckInDao
     abstract fun contactDao(): ContactDao
     abstract fun callScheduleDao(): CallScheduleDao
+    abstract fun commitmentDao(): CommitmentDao
 
     companion object {
         @Volatile

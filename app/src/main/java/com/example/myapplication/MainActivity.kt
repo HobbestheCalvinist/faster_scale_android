@@ -28,9 +28,9 @@ class MainActivity : AppCompatActivity() {
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         
-        // Updated to include CallScheduleFragment as a top-level destination
+        // Updated to include CommitmentFragment as a top-level destination
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.FirstFragment, R.id.HistoryFragment, R.id.CallScheduleFragment)
+            setOf(R.id.FirstFragment, R.id.HistoryFragment, R.id.CallScheduleFragment, R.id.CommitmentFragment)
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 

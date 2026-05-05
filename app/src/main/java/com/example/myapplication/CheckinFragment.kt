@@ -109,9 +109,9 @@ class CheckinFragment : Fragment() {
         }
 
         binding.textinputlayoutScale.setStartIconOnClickListener {
-            binding.autocompletetextviewScale.setText("", false)
-            // Re-setting the adapter resets the internal filter so all options show up next time
-            binding.autocompletetextviewScale.setAdapter(adapter)
+            binding.autocompletetextviewScale.setText(null, false)
+            // Explicitly reset the filter so all options show up next time
+            adapter.filter.filter(null)
             binding.layoutBehaviorsSection.visibility = View.GONE
             binding.autocompletetextviewScale.clearFocus()
         }
@@ -237,6 +237,8 @@ class CheckinFragment : Fragment() {
             val db = AppDatabase.getDatabase(requireContext())
             val checkIn = db.checkInDao().getCheckInByDate(date.trim())
             
+            val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<*>
+
             if (checkIn != null) {
                 binding.edittextDescription.setText(checkIn.description)
                 
@@ -244,22 +246,16 @@ class CheckinFragment : Fragment() {
                 if (displayValue != null) {
                     binding.autocompletetextviewScale.setText(displayValue, false)
                     // Reset filter state so all options are available in the dropdown
-                    val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<String>
-                    binding.autocompletetextviewScale.setAdapter(adapter)
-                    binding.autocompletetextviewScale.setText(displayValue, false)
-                    
+                    adapter?.filter?.filter(null)
                     updateBehaviorsSection(checkIn.scaleOption)
                 } else {
-                    binding.autocompletetextviewScale.setText("", false)
+                    binding.autocompletetextviewScale.setText(null, false)
+                    adapter?.filter?.filter(null)
                     binding.layoutBehaviorsSection.visibility = View.GONE
                 }
             } else {
-                binding.autocompletetextviewScale.setText("", false)
-                // Reset filter state
-                val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<String>
-                binding.autocompletetextviewScale.setAdapter(adapter)
-                binding.autocompletetextviewScale.setText("", false)
-
+                binding.autocompletetextviewScale.setText(null, false)
+                adapter?.filter?.filter(null)
                 binding.edittextDescription.setText("")
                 binding.layoutBehaviorsSection.visibility = View.GONE
             }
