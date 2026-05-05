@@ -59,13 +59,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/textview_time_label" />
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_share_trusted"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Share only with trusted contacts"
+            app:layout_constraintTop_toBottomOf="@id/button_change_time" />
+
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="24dp"
             android:background="?android:attr/listDivider"
-            app:layout_constraintTop_toBottomOf="@id/button_change_time" />
+            app:layout_constraintTop_toBottomOf="@id/switch_share_trusted" />
 
         <TextView
             android:id="@+id/textview_contacts_title"

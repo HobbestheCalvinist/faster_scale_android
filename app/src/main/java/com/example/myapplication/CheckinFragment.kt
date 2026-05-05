@@ -88,6 +88,10 @@ class CheckinFragment : Fragment() {
             currentMonthCalendar.add(Calendar.DAY_OF_YEAR, 14)
             refreshProgressCalendar()
         }
+
+        binding.textinputlayoutDescription.setStartIconOnClickListener {
+            binding.edittextDescription.setText("")
+        }
     }
 
     private fun setupDropdown() {

@@ -1,11 +1,15 @@
 package com.example.myapplication
 
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -13,6 +17,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentHistoryBinding
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -22,6 +27,8 @@ class HistoryFragment : Fragment() {
 
     private var _binding: FragmentHistoryBinding? = null
     private val binding get() = _binding!!
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var db: AppDatabase
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,15 +41,18 @@ class HistoryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        db = AppDatabase.getDatabase(requireContext())
+
         binding.recyclerviewHistory.layoutManager = LinearLayoutManager(context)
 
-        val db = AppDatabase.getDatabase(requireContext())
-        
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 db.checkInDao().getAllCheckIns().collect { checkIns ->
+                    val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
                     binding.recyclerviewHistory.adapter = HistoryAdapter(
                         checkIns = checkIns,
+                        isTrustedOnly = shareTrustedOnly,
                         onEditClick = { checkIn ->
                             val bundle = Bundle().apply {
                                 putString("selectedDate", checkIn.date)
@@ -53,39 +63,48 @@ class HistoryFragment : Fragment() {
                             showDeleteConfirmation(checkIn)
                         },
                         onShareClick = { checkIn ->
-                            shareCheckIn(checkIn)
+                            handleShareAction(checkIn)
                         }
                     )
 
                     binding.buttonShareAll.setOnClickListener {
-                        shareAllHistory(checkIns)
+                        handleShareAllAction(checkIns)
                     }
                 }
             }
         }
     }
 
-    private fun shareCheckIn(checkIn: CheckIn) {
-        val shareText = """
+    private fun handleShareAction(checkIn: CheckIn) {
+        val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
+        if (shareTrustedOnly) {
+            shareWithTrustedContacts(getShareText(checkIn))
+        } else {
+            shareGeneric(getShareText(checkIn))
+        }
+    }
+
+    private fun handleShareAllAction(checkIns: List<CheckIn>) {
+        if (checkIns.isEmpty()) return
+        val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
+        val report = getHistoryReport(checkIns)
+        if (shareTrustedOnly) {
+            shareWithTrustedContacts(report)
+        } else {
+            shareGeneric(report, "Share History Report")
+        }
+    }
+
+    private fun getShareText(checkIn: CheckIn): String {
+        return """
             Faster Scale Check-in
             Date: ${checkIn.date}
             Level: ${checkIn.scaleOption}
             Notes: ${checkIn.description}
         """.trimIndent()
-
-        val sendIntent: Intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, shareText)
-            type = "text/plain"
-        }
-
-        val shareIntent = Intent.createChooser(sendIntent, null)
-        startActivity(shareIntent)
     }
 
-    private fun shareAllHistory(checkIns: List<CheckIn>) {
-        if (checkIns.isEmpty()) return
-
+    private fun getHistoryReport(checkIns: List<CheckIn>): String {
         val report = StringBuilder("Faster Scale Recovery - Full History\n\n")
         checkIns.forEach { checkIn ->
             report.append("Date: ${checkIn.date}\n")
@@ -95,15 +114,52 @@ class HistoryFragment : Fragment() {
             }
             report.append("-------------------\n")
         }
+        return report.toString()
+    }
 
+    private fun shareGeneric(text: String, title: String? = null) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, report.toString())
+            putExtra(Intent.EXTRA_TEXT, text)
             type = "text/plain"
         }
-
-        val shareIntent = Intent.createChooser(sendIntent, "Share History Report")
+        val shareIntent = Intent.createChooser(sendIntent, title)
         startActivity(shareIntent)
+    }
+
+    private fun shareWithTrustedContacts(text: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val contacts = db.contactDao().getAllContacts().first()
+            if (contacts.isEmpty()) {
+                Toast.makeText(requireContext(), "No trusted contacts found. Please add them in Settings.", Toast.LENGTH_LONG).show()
+                return@launch
+            }
+
+            if (contacts.size == 1) {
+                sendSms(contacts[0].phoneNumber, text)
+            } else {
+                val contactNames = contacts.map { "${it.name} (${it.phoneNumber})" }.toTypedArray()
+                AlertDialog.Builder(requireContext())
+                    .setTitle("Select Recipient")
+                    .setItems(contactNames) { _, which ->
+                        sendSms(contacts[which].phoneNumber, text)
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
+    }
+
+    private fun sendSms(phoneNumber: String, text: String) {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("smsto:$phoneNumber")
+            putExtra("sms_body", text)
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Could not open SMS app", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun showDeleteConfirmation(checkIn: CheckIn) {
@@ -112,7 +168,6 @@ class HistoryFragment : Fragment() {
             .setMessage(getString(R.string.delete_confirmation_message, checkIn.date))
             .setPositiveButton(R.string.menu_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
-                    val db = AppDatabase.getDatabase(requireContext())
                     db.checkInDao().deleteCheckIn(checkIn)
                 }
             }

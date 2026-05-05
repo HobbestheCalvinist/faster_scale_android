@@ -62,6 +62,7 @@ class SettingsFragment : Fragment() {
         db = AppDatabase.getDatabase(requireContext())
 
         setupReminderSettings()
+        setupShareSettings()
         setupContactSettings()
     }
 
@@ -93,6 +94,14 @@ class SettingsFragment : Fragment() {
                     scheduleReminder(h, m)
                 }
             }, hour, minute, false).show()
+        }
+    }
+
+    private fun setupShareSettings() {
+        val isShareTrustedEnabled = sharedPreferences.getBoolean("share_trusted_only", false)
+        binding.switchShareTrusted.isChecked = isShareTrustedEnabled
+        binding.switchShareTrusted.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("share_trusted_only", isChecked).apply()
         }
     }
 
