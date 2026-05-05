@@ -100,12 +100,18 @@ class CheckinFragment : Fragment() {
         binding.autocompletetextviewScale.setAdapter(adapter)
 
         binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
-            val selectedOption = scaleOptions[position].first
-            updateBehaviorsSection(selectedOption)
+            // Use adapter.getItem to get the correct text even if the list is filtered
+            val selectedText = adapter.getItem(position) ?: ""
+            val selectedOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: ""
+            if (selectedOption.isNotEmpty()) {
+                updateBehaviorsSection(selectedOption)
+            }
         }
 
         binding.textinputlayoutScale.setStartIconOnClickListener {
             binding.autocompletetextviewScale.setText("", false)
+            // Re-setting the adapter resets the internal filter so all options show up next time
+            binding.autocompletetextviewScale.setAdapter(adapter)
             binding.layoutBehaviorsSection.visibility = View.GONE
             binding.autocompletetextviewScale.clearFocus()
         }
@@ -237,6 +243,11 @@ class CheckinFragment : Fragment() {
                 val displayValue = scaleOptions.find { it.first == checkIn.scaleOption }?.let { "${it.first}: ${it.second}" }
                 if (displayValue != null) {
                     binding.autocompletetextviewScale.setText(displayValue, false)
+                    // Reset filter state so all options are available in the dropdown
+                    val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<String>
+                    binding.autocompletetextviewScale.setAdapter(adapter)
+                    binding.autocompletetextviewScale.setText(displayValue, false)
+                    
                     updateBehaviorsSection(checkIn.scaleOption)
                 } else {
                     binding.autocompletetextviewScale.setText("", false)
@@ -244,6 +255,11 @@ class CheckinFragment : Fragment() {
                 }
             } else {
                 binding.autocompletetextviewScale.setText("", false)
+                // Reset filter state
+                val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<String>
+                binding.autocompletetextviewScale.setAdapter(adapter)
+                binding.autocompletetextviewScale.setText("", false)
+
                 binding.edittextDescription.setText("")
                 binding.layoutBehaviorsSection.visibility = View.GONE
             }
