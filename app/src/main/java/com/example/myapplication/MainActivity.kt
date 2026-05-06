@@ -7,6 +7,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.ui.NavigationUI
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
@@ -28,7 +29,6 @@ class MainActivity : AppCompatActivity() {
 
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         
-        // Updated to include CommitmentFragment as a top-level destination
         appBarConfiguration = AppBarConfiguration(
             setOf(R.id.FirstFragment, R.id.HistoryFragment, R.id.CallScheduleFragment, R.id.CommitmentFragment)
         )
@@ -36,6 +36,14 @@ class MainActivity : AppCompatActivity() {
 
         val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         navView.setupWithNavController(navController)
+        
+        // Task 1: Ensure Settings is closed when selecting any bottom nav item
+        navView.setOnItemSelectedListener { item ->
+            if (navController.currentDestination?.id == R.id.SettingsFragment) {
+                navController.popBackStack()
+            }
+            NavigationUI.onNavDestinationSelected(item, navController)
+        }
 
         binding.fab.visibility = View.GONE
     }

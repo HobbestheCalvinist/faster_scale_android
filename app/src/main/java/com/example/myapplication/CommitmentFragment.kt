@@ -1,12 +1,12 @@
 package com.example.myapplication
 
 import android.os.Bundle
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
@@ -14,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentCommitmentBinding
+import com.google.android.material.slider.Slider
 import kotlinx.coroutines.launch
 
 class CommitmentFragment : Fragment() {
@@ -86,26 +87,35 @@ class CommitmentFragment : Fragment() {
         val context = requireContext()
         val layout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(48, 24, 48, 24)
+            setPadding(64, 32, 64, 32)
         }
 
         val titleInput = EditText(context).apply {
             hint = "Title"
             setText(commitment?.title ?: "")
         }
+        
         val descInput = EditText(context).apply {
             hint = "Description"
             setText(commitment?.description ?: "")
         }
-        val completionsInput = EditText(context).apply {
-            hint = "Target completions (e.g. 7)"
-            inputType = InputType.TYPE_CLASS_NUMBER
-            setText(commitment?.targetCompletions?.toString() ?: "1")
+
+        val sliderLabel = TextView(context).apply {
+            text = "Number of completions required (1-7):"
+            setPadding(0, 32, 0, 8)
+        }
+
+        val iterationsSlider = Slider(context).apply {
+            valueFrom = 1f
+            valueTo = 7f
+            stepSize = 1f
+            value = commitment?.targetCompletions?.toFloat() ?: 1f
         }
 
         layout.addView(titleInput)
         layout.addView(descInput)
-        layout.addView(completionsInput)
+        layout.addView(sliderLabel)
+        layout.addView(iterationsSlider)
 
         AlertDialog.Builder(context)
             .setTitle(if (commitment == null) "New Commitment" else "Edit Commitment")
@@ -113,7 +123,7 @@ class CommitmentFragment : Fragment() {
             .setPositiveButton(if (commitment == null) "Add" else "Save") { _, _ ->
                 val title = titleInput.text.toString()
                 val desc = descInput.text.toString()
-                val target = completionsInput.text.toString().toIntOrNull() ?: 1
+                val target = iterationsSlider.value.toInt()
                 
                 if (title.isNotBlank()) {
                     if (commitment == null) {

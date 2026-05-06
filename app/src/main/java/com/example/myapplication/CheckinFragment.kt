@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myapplication.databinding.FragmentFirstBinding
@@ -91,6 +92,10 @@ class CheckinFragment : Fragment() {
 
         binding.textinputlayoutDescription.setStartIconOnClickListener {
             binding.edittextDescription.setText("")
+            // Reset chip highlights when description is cleared
+            binding.chipgroupBehaviors.children.forEach { view ->
+                if (view is Chip) view.isChecked = false
+            }
         }
     }
 
@@ -100,7 +105,6 @@ class CheckinFragment : Fragment() {
         binding.autocompletetextviewScale.setAdapter(adapter)
 
         binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
-            // Use adapter.getItem to get the correct text even if the list is filtered
             val selectedText = adapter.getItem(position) ?: ""
             val selectedOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: ""
             if (selectedOption.isNotEmpty()) {
@@ -110,7 +114,6 @@ class CheckinFragment : Fragment() {
 
         binding.textinputlayoutScale.setStartIconOnClickListener {
             binding.autocompletetextviewScale.setText(null, false)
-            // Explicitly reset the filter so all options show up next time
             adapter.filter.filter(null)
             binding.layoutBehaviorsSection.visibility = View.GONE
             binding.autocompletetextviewScale.clearFocus()
@@ -137,7 +140,7 @@ class CheckinFragment : Fragment() {
             behaviors.forEach { behavior ->
                 val chip = Chip(requireContext()).apply {
                     text = behavior
-                    isCheckable = false
+                    isCheckable = true // Enable highlighting
                     setOnClickListener {
                         val currentText = binding.edittextDescription.text.toString()
                         val behaviorText = "• $behavior"
@@ -150,6 +153,7 @@ class CheckinFragment : Fragment() {
                             binding.edittextDescription.append(behaviorText)
                         }
                         binding.edittextDescription.setSelection(binding.edittextDescription.text?.length ?: 0)
+                        isChecked = true // Highlight chip
                     }
                 }
                 binding.chipgroupBehaviors.addView(chip)
@@ -245,7 +249,6 @@ class CheckinFragment : Fragment() {
                 val displayValue = scaleOptions.find { it.first == checkIn.scaleOption }?.let { "${it.first}: ${it.second}" }
                 if (displayValue != null) {
                     binding.autocompletetextviewScale.setText(displayValue, false)
-                    // Reset filter state so all options are available in the dropdown
                     adapter?.filter?.filter(null)
                     updateBehaviorsSection(checkIn.scaleOption)
                 } else {
@@ -269,15 +272,12 @@ class CheckinFragment : Fragment() {
             return
         }
 
-        // Extract the title (e.g. "Restoration") from "Restoration: Accepting life..."
         val scaleOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: selectedText
-
         val description = binding.edittextDescription.text.toString()
         val date = binding.textviewSelectedDate.text.toString()
 
         viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
-            // Check if a record already exists for this date to preserve the ID
             val existingCheckIn = db.checkInDao().getCheckInByDate(date.trim())
             
             val checkIn = if (existingCheckIn != null) {

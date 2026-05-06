@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -16,6 +17,8 @@ class CommitmentAdapter(
     private val onDelete: (Commitment) -> Unit,
     private val onReset: (Commitment) -> Unit
 ) : ListAdapter<Commitment, CommitmentAdapter.ViewHolder>(CommitmentDiffCallback()) {
+
+    private var expandedPosition = -1
 
     class ViewHolder(val binding: ItemCommitmentBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -35,24 +38,39 @@ class CommitmentAdapter(
         holder.binding.textviewCommitmentTitle.text = commitment.title
         holder.binding.textviewCommitmentDescription.text = commitment.description
         
-        // Master checkbox for overall completion
+        // Expand/Collapse logic
+        val isExpanded = position == expandedPosition
+        holder.binding.layoutExpandableContent.visibility = if (isExpanded) View.VISIBLE else View.GONE
+        holder.binding.imageviewExpandArrow.rotation = if (isExpanded) 180f else 0f
+        
+        holder.itemView.setOnClickListener {
+            val prevExpanded = expandedPosition
+            expandedPosition = if (isExpanded) -1 else holder.adapterPosition
+            notifyItemChanged(prevExpanded)
+            notifyItemChanged(expandedPosition)
+        }
+
+        // Master checkbox for overall completion - Using curved square drawable
         holder.binding.checkboxMaster.setOnCheckedChangeListener(null)
         holder.binding.checkboxMaster.isChecked = commitment.isCompleted
         holder.binding.checkboxMaster.setOnCheckedChangeListener { _, isChecked ->
             onToggleComplete(commitment.copy(isCompleted = isChecked))
         }
 
-        // Handle completion checkboxes
+        // Handle completion checkboxes - Using circular drawable
         holder.binding.layoutCompletionCheckboxes.removeAllViews()
         for (i in 1..commitment.targetCompletions) {
             val checkBox = CheckBox(context).apply {
+                buttonDrawable = ContextCompat.getDrawable(context, R.drawable.checkbox_circle)
+                background = null
+                minWidth = 0
+                minHeight = 0
+                setPadding(4, 0, 4, 0)
                 isChecked = i <= commitment.currentCompletions
                 setOnCheckedChangeListener { _, isChecked ->
                     val newCount = if (isChecked) {
-                        // Check all boxes up to this one
                         maxOf(commitment.currentCompletions, i)
                     } else {
-                        // Uncheck all boxes from this one onwards
                         minOf(commitment.currentCompletions, i - 1)
                     }
                     if (newCount != commitment.currentCompletions) {
@@ -67,7 +85,6 @@ class CommitmentAdapter(
         holder.binding.buttonDelete.setOnClickListener { onDelete(commitment) }
         holder.binding.buttonReset.setOnClickListener { onReset(commitment) }
         
-        // Visual feedback for completed items
         holder.binding.root.alpha = if (commitment.isCompleted) 0.6f else 1.0f
     }
 

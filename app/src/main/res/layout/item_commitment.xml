@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/card_commitment"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
@@ -14,91 +15,114 @@
         android:orientation="vertical"
         android:padding="16dp">
 
+        <!-- Always visible: Title and Expand Arrow -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="top"
+            android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <CheckBox
-                android:id="@+id/checkbox_master"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="-4dp"
-                android:contentDescription="Mark as completed" />
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/textview_commitment_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:orientation="vertical">
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textStyle="bold" />
 
-                <TextView
-                    android:id="@+id/textview_commitment_title"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.chip.ChipGroup
-                    android:id="@+id/layout_completion_checkboxes"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    app:chipSpacingHorizontal="0dp"
-                    app:chipSpacingVertical="0dp" />
-
-                <TextView
-                    android:id="@+id/textview_commitment_description"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-            </LinearLayout>
-
-            <ImageButton
-                android:id="@+id/button_edit"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Edit commitment"
-                android:src="@android:drawable/ic_menu_edit"
-                app:tint="?attr/colorPrimary" />
+            <ImageView
+                android:id="@+id/imageview_expand_arrow"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/arrow_down_float"
+                app:tint="?attr/colorOnSurfaceVariant"
+                android:contentDescription="Expand" />
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="12dp"
-            android:background="?attr/colorOutlineVariant" />
-
+        <!-- Expandable Content -->
         <LinearLayout
+            android:id="@+id/layout_expandable_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="end"
-            android:orientation="horizontal"
-            android:paddingTop="8dp">
+            android:orientation="vertical"
+            android:visibility="gone">
 
-            <ImageButton
-                android:id="@+id/button_reset"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Reset progress"
-                android:src="@android:drawable/stat_notify_sync"
-                app:tint="?attr/colorSecondary" />
+            <TextView
+                android:id="@+id/textview_commitment_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
-            <ImageButton
-                android:id="@+id/button_delete"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_marginStart="8dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Delete commitment"
-                android:src="@android:drawable/ic_menu_delete"
-                app:tint="?attr/colorError" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="12dp"
+                android:background="?attr/colorOutlineVariant" />
+
+            <!-- Action Row: Iterations, Separator, Master Checkbox, Edit, Reset, Delete -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <!-- Container for dynamic circular iteration checkboxes -->
+                <LinearLayout
+                    android:id="@+id/layout_completion_checkboxes"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical" />
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="24dp"
+                    android:layout_marginHorizontal="12dp"
+                    android:background="?attr/colorOutlineVariant" />
+
+                <!-- Master curved square checkbox for total completion -->
+                <CheckBox
+                    android:id="@+id/checkbox_master"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@drawable/checkbox_curved_square"
+                    android:background="@null"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:contentDescription="Complete Entire Commitment" />
+
+                <ImageButton
+                    android:id="@+id/button_edit"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginStart="8dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_edit"
+                    app:tint="?attr/colorPrimary"
+                    android:contentDescription="Edit" />
+
+                <ImageButton
+                    android:id="@+id/button_reset"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/stat_notify_sync"
+                    app:tint="?attr/colorSecondary"
+                    android:contentDescription="Reset" />
+
+                <ImageButton
+                    android:id="@+id/button_delete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_delete"
+                    app:tint="?attr/colorError"
+                    android:contentDescription="Delete" />
+            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>
