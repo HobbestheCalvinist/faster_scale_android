@@ -8,12 +8,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.databinding.ItemHistoryBinding
 
 class HistoryAdapter(
-    private val checkIns: List<CheckIn>,
+    private var checkIns: List<CheckIn>,
     private val isTrustedOnly: Boolean,
     private val onEditClick: (CheckIn) -> Unit,
     private val onDeleteClick: (CheckIn) -> Unit,
     private val onShareClick: (CheckIn) -> Unit
 ) : RecyclerView.Adapter<HistoryAdapter.ViewHolder>() {
+
+    private var expandedPosition = -1
 
     class ViewHolder(val binding: ItemHistoryBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -46,11 +48,20 @@ class HistoryAdapter(
         }
         holder.binding.textviewHistoryScale.setTextColor(ContextCompat.getColor(context, colorRes))
         
-        if (checkIn.description.isNotEmpty()) {
+        // Expansion logic
+        val isExpanded = position == expandedPosition
+        if (checkIn.description.isNotEmpty() && isExpanded) {
             holder.binding.textviewHistoryDescription.text = checkIn.description
             holder.binding.textviewHistoryDescription.visibility = View.VISIBLE
         } else {
             holder.binding.textviewHistoryDescription.visibility = View.GONE
+        }
+
+        holder.itemView.setOnClickListener {
+            val prevExpanded = expandedPosition
+            expandedPosition = if (isExpanded) -1 else position
+            notifyItemChanged(prevExpanded)
+            notifyItemChanged(expandedPosition)
         }
 
         holder.binding.buttonEdit.setOnClickListener {
@@ -74,4 +85,9 @@ class HistoryAdapter(
     }
 
     override fun getItemCount() = checkIns.size
+
+    fun updateData(newCheckIns: List<CheckIn>) {
+        this.checkIns = newCheckIns
+        notifyDataSetChanged()
+    }
 }

@@ -116,137 +116,200 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Check-in Form Card -->
+            <!-- Check-in Container Card -->
             <com.google.android.material.card.MaterialCardView
                 style="?attr/materialCardViewElevatedStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="24dp">
 
-                <androidx.constraintlayout.widget.ConstraintLayout
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="20dp">
+                    android:orientation="vertical"
+                    android:animateLayoutChanges="true">
 
-                    <LinearLayout
-                        android:id="@+id/layout_date_picker"
+                    <!-- View Mode Layout (similar to history item) -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/layout_view_mode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        app:layout_constraintTop_toTopOf="parent">
+                        android:padding="20dp"
+                        android:visibility="gone">
 
                         <TextView
-                            android:id="@+id/textview_date_label"
+                            android:id="@+id/textview_view_date"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/label_date_selector"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textStyle="bold" />
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textStyle="bold"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:text="Oct 24, 2023" />
 
                         <TextView
-                            android:id="@+id/textview_selected_date"
+                            android:id="@+id/textview_view_scale"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="12dp"
-                            android:layout_weight="1"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            tools:text="October 24, 2023" />
+                            android:layout_marginTop="4dp"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textStyle="bold"
+                            app:layout_constraintEnd_toStartOf="@id/button_edit_checkin"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/textview_view_date"
+                            tools:text="Restoration" />
 
-                        <Button
-                            android:id="@+id/button_pick_date"
-                            style="?attr/materialButtonOutlinedStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/button_change_date" />
-                    </LinearLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/textinputlayout_scale"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
-                        android:hint="Select FASTER Scale"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/layout_date_picker"
-                        app:startIconContentDescription="Clear selection"
-                        app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
-
-                        <AutoCompleteTextView
-                            android:id="@+id/autocompletetextview_scale"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:inputType="none"
-                            android:paddingTop="16dp"
-                            android:paddingBottom="16dp"
-                            android:singleLine="false" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <!-- Section that opens up -->
-                    <LinearLayout
-                        android:id="@+id/layout_behaviors_section"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="vertical"
-                        android:visibility="gone"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/textinputlayout_scale">
+                        <ImageButton
+                            android:id="@+id/button_edit_checkin"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="Edit Check-in"
+                            android:src="@android:drawable/ic_menu_edit"
+                            app:layout_constraintBottom_toBottomOf="@id/textview_view_scale"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintTop_toTopOf="@id/textview_view_date"
+                            app:tint="?attr/colorPrimary" />
 
                         <TextView
-                            android:id="@+id/textview_behaviors_label"
-                            android:layout_width="match_parent"
+                            android:id="@+id/textview_view_description"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:text="@string/label_behaviors"
-                            android:textAppearance="?attr/textAppearanceTitleSmall" />
+                            android:layout_marginTop="12dp"
+                            android:textAppearance="?attr/textAppearanceBodyLarge"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/textview_view_scale"
+                            tools:text="Notes will appear here..." />
+                    </androidx.constraintlayout.widget.ConstraintLayout>
 
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipgroup_behaviors"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:chipSpacingHorizontal="8dp"
-                            app:chipSpacingVertical="4dp" />
-                    </LinearLayout>
-
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/textinputlayout_description"
-                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
-                        android:hint="@string/hint_description"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section"
-                        app:startIconContentDescription="Clear text"
-                        app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
-
-                        <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/edittext_description"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="top"
-                            android:inputType="textMultiLine"
-                            android:minLines="5" />
-                    </com.google.android.material.textfield.TextInputLayout>
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_save"
-                        style="@style/Widget.Material3.Button"
+                    <!-- Edit Mode Layout (Original Form) -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:id="@+id/layout_edit_mode"
                         android:layout_width="match_parent"
-                        android:layout_height="64dp"
-                        android:layout_marginTop="24dp"
-                        android:text="@string/save_checkin"
-                        app:icon="@drawable/ic_save"
-                        app:iconGravity="textStart"
-                        app:iconSize="24dp"
-                        app:layout_constraintTop_toBottomOf="@id/textinputlayout_description" />
+                        android:layout_height="wrap_content"
+                        android:padding="20dp">
 
-                </androidx.constraintlayout.widget.ConstraintLayout>
+                        <LinearLayout
+                            android:id="@+id/layout_date_picker"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                            <TextView
+                                android:id="@+id/textview_date_label"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/label_date_selector"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/textview_selected_date"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:textAppearance="?attr/textAppearanceBodyLarge"
+                                tools:text="October 24, 2023" />
+
+                            <Button
+                                android:id="@+id/button_pick_date"
+                                style="?attr/materialButtonOutlinedStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/button_change_date" />
+                        </LinearLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/textinputlayout_scale"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:hint="Select FASTER Scale"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/layout_date_picker"
+                            app:startIconContentDescription="Clear selection"
+                            app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
+
+                            <AutoCompleteTextView
+                                android:id="@+id/autocompletetextview_scale"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:inputType="none"
+                                android:paddingTop="16dp"
+                                android:paddingBottom="16dp"
+                                android:singleLine="false" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Section that opens up -->
+                        <LinearLayout
+                            android:id="@+id/layout_behaviors_section"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="16dp"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/textinputlayout_scale">
+
+                            <TextView
+                                android:id="@+id/textview_behaviors_label"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="8dp"
+                                android:text="@string/label_behaviors"
+                                android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+                            <com.google.android.material.chip.ChipGroup
+                                android:id="@+id/chipgroup_behaviors"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:chipSpacingHorizontal="8dp"
+                                app:chipSpacingVertical="4dp" />
+                        </LinearLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/textinputlayout_description"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:hint="@string/hint_description"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section"
+                            app:startIconContentDescription="Clear text"
+                            app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/edittext_description"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="top"
+                                android:inputType="textMultiLine"
+                                android:minLines="5" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_save"
+                            style="@style/Widget.Material3.Button"
+                            android:layout_width="match_parent"
+                            android:layout_height="64dp"
+                            android:layout_marginTop="24dp"
+                            android:text="@string/save_checkin"
+                            app:icon="@drawable/ic_save"
+                            app:iconGravity="textStart"
+                            app:iconSize="24dp"
+                            app:layout_constraintTop_toBottomOf="@id/textinputlayout_description" />
+
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+                </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

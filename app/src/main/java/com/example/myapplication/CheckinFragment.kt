@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.core.view.children
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
@@ -80,6 +81,10 @@ class CheckinFragment : Fragment() {
             saveCheckIn()
         }
 
+        binding.buttonEditCheckin.setOnClickListener {
+            showEditMode(true)
+        }
+
         binding.buttonPrevMonth.setOnClickListener {
             currentMonthCalendar.add(Calendar.DAY_OF_YEAR, -14)
             refreshProgressCalendar()
@@ -124,15 +129,15 @@ class CheckinFragment : Fragment() {
         binding.layoutBehaviorsSection.visibility = View.VISIBLE
         binding.chipgroupBehaviors.removeAllViews()
 
-        val (descResId, behaviorsResId) = when (scaleOption) {
-            getString(R.string.scale_restoration) -> Pair(R.string.desc_restoration, R.array.behaviors_restoration)
-            getString(R.string.scale_forgetting) -> Pair(R.string.desc_forgetting, R.array.behaviors_forgetting)
-            getString(R.string.scale_anxiety) -> Pair(R.string.desc_anxiety, R.array.behaviors_anxiety)
-            getString(R.string.scale_speeding) -> Pair(R.string.desc_speeding, R.array.behaviors_speeding)
-            getString(R.string.scale_ticked_off) -> Pair(R.string.desc_ticked_off, R.array.behaviors_ticked_off)
-            getString(R.string.scale_exhausted) -> Pair(R.string.desc_exhausted, R.array.behaviors_exhausted)
-            getString(R.string.scale_relapse) -> Pair(R.string.desc_relapse, R.array.behaviors_relapse)
-            else -> Pair(null, null)
+        val behaviorsResId = when (scaleOption) {
+            getString(R.string.scale_restoration) -> R.array.behaviors_restoration
+            getString(R.string.scale_forgetting) -> R.array.behaviors_forgetting
+            getString(R.string.scale_anxiety) -> R.array.behaviors_anxiety
+            getString(R.string.scale_speeding) -> R.array.behaviors_speeding
+            getString(R.string.scale_ticked_off) -> R.array.behaviors_ticked_off
+            getString(R.string.scale_exhausted) -> R.array.behaviors_exhausted
+            getString(R.string.scale_relapse) -> R.array.behaviors_relapse
+            else -> null
         }
 
         if (behaviorsResId != null) {
@@ -232,11 +237,13 @@ class CheckinFragment : Fragment() {
     }
 
     private fun updateDateDisplay() {
-        binding.textviewSelectedDate.text = dateFormatter.format(selectedCalendar.time)
+        val dateStr = dateFormatter.format(selectedCalendar.time)
+        binding.textviewSelectedDate.text = dateStr
+        binding.textviewViewDate.text = dateStr
     }
 
     private fun loadCheckInForSelectedDate() {
-        val date = binding.textviewSelectedDate.text.toString()
+        val date = dateFormatter.format(selectedCalendar.time)
         viewLifecycleOwner.lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
             val checkIn = db.checkInDao().getCheckInByDate(date.trim())
@@ -244,24 +251,52 @@ class CheckinFragment : Fragment() {
             val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<*>
 
             if (checkIn != null) {
-                binding.edittextDescription.setText(checkIn.description)
+                // Populate View Mode
+                binding.textviewViewScale.text = checkIn.scaleOption
+                binding.textviewViewDescription.text = checkIn.description
+                binding.textviewViewDescription.visibility = if (checkIn.description.isEmpty()) View.GONE else View.VISIBLE
                 
+                // Color coding for View Mode
+                val colorRes = when (checkIn.scaleOption) {
+                    getString(R.string.scale_restoration) -> R.color.color_restoration
+                    getString(R.string.scale_forgetting) -> R.color.color_forgetting
+                    getString(R.string.scale_anxiety) -> R.color.color_anxiety
+                    getString(R.string.scale_speeding) -> R.color.color_speeding
+                    getString(R.string.scale_ticked_off) -> R.color.color_ticked_off
+                    getString(R.string.scale_exhausted) -> R.color.color_exhausted
+                    getString(R.string.scale_relapse) -> R.color.color_relapse
+                    else -> R.color.purple_500
+                }
+                binding.textviewViewScale.setTextColor(ContextCompat.getColor(requireContext(), colorRes))
+
+                // Populate Edit Mode (in case user clicks Edit)
+                binding.edittextDescription.setText(checkIn.description)
                 val displayValue = scaleOptions.find { it.first == checkIn.scaleOption }?.let { "${it.first}: ${it.second}" }
                 if (displayValue != null) {
                     binding.autocompletetextviewScale.setText(displayValue, false)
                     adapter?.filter?.filter(null)
                     updateBehaviorsSection(checkIn.scaleOption)
-                } else {
-                    binding.autocompletetextviewScale.setText(null, false)
-                    adapter?.filter?.filter(null)
-                    binding.layoutBehaviorsSection.visibility = View.GONE
                 }
+                
+                showEditMode(false)
             } else {
+                // No check-in, go straight to Edit mode
                 binding.autocompletetextviewScale.setText(null, false)
                 adapter?.filter?.filter(null)
                 binding.edittextDescription.setText("")
                 binding.layoutBehaviorsSection.visibility = View.GONE
+                showEditMode(true)
             }
+        }
+    }
+
+    private fun showEditMode(isEdit: Boolean) {
+        if (isEdit) {
+            binding.layoutEditMode.visibility = View.VISIBLE
+            binding.layoutViewMode.visibility = View.GONE
+        } else {
+            binding.layoutEditMode.visibility = View.GONE
+            binding.layoutViewMode.visibility = View.VISIBLE
         }
     }
 
@@ -289,6 +324,7 @@ class CheckinFragment : Fragment() {
             db.checkInDao().insertCheckIn(checkIn)
             Toast.makeText(requireContext(), "Check-in saved!", Toast.LENGTH_SHORT).show()
             refreshProgressCalendar()
+            loadCheckInForSelectedDate() // This will switch back to View mode
         }
     }
 
