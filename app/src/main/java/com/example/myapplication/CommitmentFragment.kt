@@ -36,16 +36,14 @@ class CommitmentFragment : Fragment() {
         db = AppDatabase.getDatabase(requireContext())
 
         val activeAdapter = CommitmentAdapter(
-            onToggleComplete = { commitment -> updateCommitment(commitment) },
-            onUpdateCompletions = { commitment -> updateCommitment(commitment) },
+            onUpdateCommitment = { commitment -> updateCommitment(commitment) },
             onEdit = { commitment -> showAddEditCommitmentDialog(commitment) },
             onDelete = { commitment -> deleteCommitment(commitment) },
             onReset = { commitment -> resetCommitment(commitment) }
         )
 
         val completedAdapter = CommitmentAdapter(
-            onToggleComplete = { commitment -> updateCommitment(commitment) },
-            onUpdateCompletions = { commitment -> updateCommitment(commitment) },
+            onUpdateCommitment = { commitment -> updateCommitment(commitment) },
             onEdit = { commitment -> showAddEditCommitmentDialog(commitment) },
             onDelete = { commitment -> deleteCommitment(commitment) },
             onReset = { commitment -> resetCommitment(commitment) }

@@ -34,10 +34,11 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
+        // Using findViewById to safely access the bottom navigation inside the included layout
         val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         navView.setupWithNavController(navController)
         
-        // Task 1: Ensure Settings is closed when selecting any bottom nav item
+        // Ensure Settings is closed when selecting any bottom nav item
         navView.setOnItemSelectedListener { item ->
             if (navController.currentDestination?.id == R.id.SettingsFragment) {
                 navController.popBackStack()

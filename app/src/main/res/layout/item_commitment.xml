@@ -6,6 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
+    android:animateLayoutChanges="true"
     app:cardCornerRadius="16dp"
     app:cardElevation="2dp">
 
@@ -61,7 +62,7 @@
                 android:layout_marginTop="12dp"
                 android:background="?attr/colorOutlineVariant" />
 
-            <!-- Action Row: Iterations, Separator, Master Checkbox, Edit, Reset, Delete -->
+            <!-- Action Row: Iterations and Management Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -77,23 +78,6 @@
                     android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center_vertical" />
-
-                <View
-                    android:layout_width="1dp"
-                    android:layout_height="24dp"
-                    android:layout_marginHorizontal="12dp"
-                    android:background="?attr/colorOutlineVariant" />
-
-                <!-- Master curved square checkbox for total completion -->
-                <CheckBox
-                    android:id="@+id/checkbox_master"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:button="@drawable/checkbox_curved_square"
-                    android:background="@null"
-                    android:minWidth="0dp"
-                    android:minHeight="0dp"
-                    android:contentDescription="Complete Entire Commitment" />
 
                 <ImageButton
                     android:id="@+id/button_edit"

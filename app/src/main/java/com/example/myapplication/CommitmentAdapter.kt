@@ -4,15 +4,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.databinding.ItemCommitmentBinding
 
 class CommitmentAdapter(
-    private val onToggleComplete: (Commitment) -> Unit,
-    private val onUpdateCompletions: (Commitment) -> Unit,
+    private val onUpdateCommitment: (Commitment) -> Unit,
     private val onEdit: (Commitment) -> Unit,
     private val onDelete: (Commitment) -> Unit,
     private val onReset: (Commitment) -> Unit
@@ -50,22 +48,13 @@ class CommitmentAdapter(
             notifyItemChanged(expandedPosition)
         }
 
-        // Master checkbox for overall completion - Using curved square drawable
-        holder.binding.checkboxMaster.setOnCheckedChangeListener(null)
-        holder.binding.checkboxMaster.isChecked = commitment.isCompleted
-        holder.binding.checkboxMaster.setOnCheckedChangeListener { _, isChecked ->
-            onToggleComplete(commitment.copy(isCompleted = isChecked))
-        }
-
-        // Handle completion checkboxes - Using circular drawable
+        // Handle completion checkboxes - Reverted to native style for smoothness
         holder.binding.layoutCompletionCheckboxes.removeAllViews()
         for (i in 1..commitment.targetCompletions) {
             val checkBox = CheckBox(context).apply {
-                buttonDrawable = ContextCompat.getDrawable(context, R.drawable.checkbox_circle)
-                background = null
-                minWidth = 0
-                minHeight = 0
-                setPadding(4, 0, 4, 0)
+                // Native look and feel
+                scaleX = 0.85f 
+                scaleY = 0.85f
                 isChecked = i <= commitment.currentCompletions
                 setOnCheckedChangeListener { _, isChecked ->
                     val newCount = if (isChecked) {
@@ -73,8 +62,14 @@ class CommitmentAdapter(
                     } else {
                         minOf(commitment.currentCompletions, i - 1)
                     }
+                    
                     if (newCount != commitment.currentCompletions) {
-                        onUpdateCompletions(commitment.copy(currentCompletions = newCount))
+                        // Auto-complete if all iterations are done
+                        val isNowCompleted = newCount == commitment.targetCompletions
+                        onUpdateCommitment(commitment.copy(
+                            currentCompletions = newCount,
+                            isCompleted = isNowCompleted
+                        ))
                     }
                 }
             }
