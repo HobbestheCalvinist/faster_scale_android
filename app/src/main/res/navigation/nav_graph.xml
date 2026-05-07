@@ -45,6 +45,12 @@
         tools:layout="@layout/fragment_settings" />
 
     <fragment
+        android:id="@+id/AboutFragment"
+        android:name="com.example.myapplication.AboutFragment"
+        android:label="About"
+        tools:layout="@layout/fragment_about" />
+
+    <fragment
         android:id="@+id/CallScheduleFragment"
         android:name="com.example.myapplication.CallScheduleFragment"
         android:label="@string/call_schedule_fragment_label"

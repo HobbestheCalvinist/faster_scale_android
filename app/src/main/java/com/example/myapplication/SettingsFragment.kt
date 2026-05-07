@@ -100,9 +100,16 @@ class SettingsFragment : Fragment() {
     private fun setupShareSettings() {
         val isShareTrustedEnabled = sharedPreferences.getBoolean("share_trusted_only", false)
         binding.switchShareTrusted.isChecked = isShareTrustedEnabled
+        updateContactSectionVisibility(isShareTrustedEnabled)
+
         binding.switchShareTrusted.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("share_trusted_only", isChecked).apply()
+            updateContactSectionVisibility(isChecked)
         }
+    }
+
+    private fun updateContactSectionVisibility(isVisible: Boolean) {
+        binding.layoutManageContacts.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     private fun setupContactSettings() {

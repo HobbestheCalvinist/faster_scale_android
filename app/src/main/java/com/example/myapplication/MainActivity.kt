@@ -38,9 +38,10 @@ class MainActivity : AppCompatActivity() {
         val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
         navView.setupWithNavController(navController)
         
-        // Ensure Settings is closed when selecting any bottom nav item
+        // Ensure Settings/About is closed when selecting any bottom nav item
         navView.setOnItemSelectedListener { item ->
-            if (navController.currentDestination?.id == R.id.SettingsFragment) {
+            val currentId = navController.currentDestination?.id
+            if (currentId == R.id.SettingsFragment || currentId == R.id.AboutFragment) {
                 navController.popBackStack()
             }
             NavigationUI.onNavDestinationSelected(item, navController)
@@ -55,9 +56,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val navController = findNavController(R.id.nav_host_fragment_content_main)
         return when (item.itemId) {
             R.id.action_settings -> {
-                findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.SettingsFragment)
+                navController.navigate(R.id.SettingsFragment)
+                true
+            }
+            R.id.AboutFragment -> {
+                navController.navigate(R.id.AboutFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)

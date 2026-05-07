@@ -9,7 +9,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:animateLayoutChanges="true">
 
         <TextView
             android:id="@+id/textview_settings_title"
@@ -29,35 +30,37 @@
             android:text="Daily Reminder"
             app:layout_constraintTop_toBottomOf="@id/textview_settings_title" />
 
-        <TextView
-            android:id="@+id/textview_time_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Reminder Time:"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/switch_reminder" />
-
-        <TextView
-            android:id="@+id/textview_selected_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:text="08:00 AM"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@id/textview_time_label"
-            app:layout_constraintStart_toEndOf="@id/textview_time_label"
-            app:layout_constraintTop_toTopOf="@id/textview_time_label" />
-
-        <Button
-            android:id="@+id/button_change_time"
-            style="?attr/materialButtonOutlinedStyle"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layout_reminder_time"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="Change Time"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textview_time_label" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/switch_reminder">
+
+            <TextView
+                android:id="@+id/textview_time_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Reminder Time:" />
+
+            <TextView
+                android:id="@+id/textview_selected_time"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="08:00 AM"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/button_change_time"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Change Time" />
+        </LinearLayout>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch_share_trusted"
@@ -65,46 +68,59 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Share only with trusted contacts"
-            app:layout_constraintTop_toBottomOf="@id/button_change_time" />
+            app:layout_constraintTop_toBottomOf="@id/layout_reminder_time" />
 
-        <View
-            android:id="@+id/divider"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="24dp"
-            android:background="?android:attr/listDivider"
-            app:layout_constraintTop_toBottomOf="@id/switch_share_trusted" />
-
-        <TextView
-            android:id="@+id/textview_contacts_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Manage Contacts"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider" />
-
-        <Button
-            android:id="@+id/button_add_contact"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Add Contact"
-            app:icon="@android:drawable/ic_input_add"
-            app:layout_constraintBottom_toBottomOf="@id/textview_contacts_title"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/textview_contacts_title" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerview_contacts"
+        <!-- Manage Contacts Section -->
+        <LinearLayout
+            android:id="@+id/layout_manage_contacts"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:nestedScrollingEnabled="false"
-            app:layout_constraintTop_toBottomOf="@id/textview_contacts_title"
-            tools:listitem="@layout/item_contact" />
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/switch_share_trusted">
+
+            <View
+                android:id="@+id/divider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="24dp"
+                android:background="?android:attr/listDivider" />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp">
+
+                <TextView
+                    android:id="@+id/textview_contacts_title"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Manage Contacts"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <Button
+                    android:id="@+id/button_add_contact"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Add Contact"
+                    app:icon="@android:drawable/ic_input_add"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview_contacts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_contact" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

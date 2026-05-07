@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * A simple [Fragment] subclass as the third destination in the navigation.
@@ -29,6 +31,8 @@ class HistoryFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var db: AppDatabase
+    private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
+    private val monthYearFormatter = SimpleDateFormat("MMMM yyyy", Locale.US)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,8 +54,11 @@ class HistoryFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 db.checkInDao().getAllCheckIns().collect { checkIns ->
                     val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
+                    
+                    val groupedItems = groupCheckIns(checkIns)
+                    
                     binding.recyclerviewHistory.adapter = HistoryAdapter(
-                        checkIns = checkIns,
+                        items = groupedItems,
                         isTrustedOnly = shareTrustedOnly,
                         onEditClick = { checkIn ->
                             val bundle = Bundle().apply {
@@ -73,6 +80,65 @@ class HistoryFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun groupCheckIns(checkIns: List<CheckIn>): List<HistoryListItem> {
+        if (checkIns.isEmpty()) return emptyList()
+
+        val sortedCheckIns = checkIns.sortedByDescending { 
+            try { dateFormatter.parse(it.date) } catch (e: Exception) { Date(0) }
+        }
+
+        val result = mutableListOf<HistoryListItem>()
+        val calendar = Calendar.getInstance()
+        val today = calendar.time
+        
+        calendar.add(Calendar.DAY_OF_YEAR, -7)
+        val oneWeekAgo = calendar.time
+
+        val thisWeek = mutableListOf<CheckIn>()
+        val olderGroups = mutableMapOf<String, MutableList<CheckIn>>()
+
+        sortedCheckIns.forEach { checkIn ->
+            val date = try { dateFormatter.parse(checkIn.date) } catch (e: Exception) { null }
+            if (date != null) {
+                if (date.after(oneWeekAgo) || isSameDay(date, oneWeekAgo)) {
+                    thisWeek.add(checkIn)
+                } else {
+                    val key = monthYearFormatter.format(date)
+                    olderGroups.getOrPut(key) { mutableListOf() }.add(checkIn)
+                }
+            }
+        }
+
+        if (thisWeek.isNotEmpty()) {
+            result.add(HistoryListItem.Header("This Week"))
+            thisWeek.forEach { result.add(HistoryListItem.Entry(it)) }
+        }
+
+        // Map keys are already in order because sortedCheckIns was sorted
+        // But let's be safe and iterate through the sorted checkins to maintain order
+        val processedMonths = mutableSetOf<String>()
+        sortedCheckIns.forEach { checkIn ->
+            val date = try { dateFormatter.parse(checkIn.date) } catch (e: Exception) { null }
+            if (date != null && date.before(oneWeekAgo) && !isSameDay(date, oneWeekAgo)) {
+                val key = monthYearFormatter.format(date)
+                if (!processedMonths.contains(key)) {
+                    result.add(HistoryListItem.Header(key))
+                    olderGroups[key]?.forEach { result.add(HistoryListItem.Entry(it)) }
+                    processedMonths.add(key)
+                }
+            }
+        }
+
+        return result
+    }
+
+    private fun isSameDay(d1: Date, d2: Date): Boolean {
+        val cal1 = Calendar.getInstance().apply { time = d1 }
+        val cal2 = Calendar.getInstance().apply { time = d2 }
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+               cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 
     private fun handleShareAction(checkIn: CheckIn) {
