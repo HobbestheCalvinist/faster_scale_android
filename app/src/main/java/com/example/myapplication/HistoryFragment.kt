@@ -33,6 +33,7 @@ class HistoryFragment : Fragment() {
     private lateinit var db: AppDatabase
     private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
     private val monthYearFormatter = SimpleDateFormat("MMMM yyyy", Locale.US)
+    private var historyAdapter: HistoryAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,25 +55,37 @@ class HistoryFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 db.checkInDao().getAllCheckIns().collect { checkIns ->
                     val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
-                    
                     val groupedItems = groupCheckIns(checkIns)
                     
-                    binding.recyclerviewHistory.adapter = HistoryAdapter(
-                        items = groupedItems,
-                        isTrustedOnly = shareTrustedOnly,
-                        onEditClick = { checkIn ->
-                            val bundle = Bundle().apply {
-                                putString("selectedDate", checkIn.date)
+                    if (historyAdapter == null) {
+                        historyAdapter = HistoryAdapter(
+                            allItems = groupedItems,
+                            isTrustedOnly = shareTrustedOnly,
+                            onEditClick = { checkIn ->
+                                val bundle = Bundle().apply {
+                                    putString("selectedDate", checkIn.date)
+                                }
+                                findNavController().navigate(R.id.action_HistoryFragment_to_FirstFragment, bundle)
+                            },
+                            onDeleteClick = { checkIn ->
+                                showDeleteConfirmation(checkIn)
+                            },
+                            onShareClick = { checkIn ->
+                                handleShareAction(checkIn)
                             }
-                            findNavController().navigate(R.id.action_HistoryFragment_to_FirstFragment, bundle)
-                        },
-                        onDeleteClick = { checkIn ->
-                            showDeleteConfirmation(checkIn)
-                        },
-                        onShareClick = { checkIn ->
-                            handleShareAction(checkIn)
-                        }
-                    )
+                        )
+                        
+                        // Collapse all groups except "This Week" by default
+                        val olderGroups = groupedItems
+                            .filterIsInstance<HistoryListItem.Header>()
+                            .map { it.title }
+                            .filter { it != "This Week" }
+                        historyAdapter?.collapseGroups(olderGroups)
+                        
+                        binding.recyclerviewHistory.adapter = historyAdapter
+                    } else {
+                        historyAdapter?.updateData(groupedItems)
+                    }
 
                     binding.buttonShareAll.setOnClickListener {
                         handleShareAllAction(checkIns)
@@ -90,11 +103,22 @@ class HistoryFragment : Fragment() {
         }
 
         val result = mutableListOf<HistoryListItem>()
-        val calendar = Calendar.getInstance()
-        val today = calendar.time
         
-        calendar.add(Calendar.DAY_OF_YEAR, -7)
-        val oneWeekAgo = calendar.time
+        // Get start day from prefs
+        val startDayOfWeek = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
+        
+        // Calculate the beginning of the current week
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        
+        // Adjust back to the start of the week day
+        while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
+            cal.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        val startOfThisWeek = cal.time
 
         val thisWeek = mutableListOf<CheckIn>()
         val olderGroups = mutableMapOf<String, MutableList<CheckIn>>()
@@ -102,7 +126,7 @@ class HistoryFragment : Fragment() {
         sortedCheckIns.forEach { checkIn ->
             val date = try { dateFormatter.parse(checkIn.date) } catch (e: Exception) { null }
             if (date != null) {
-                if (date.after(oneWeekAgo) || isSameDay(date, oneWeekAgo)) {
+                if (!date.before(startOfThisWeek)) {
                     thisWeek.add(checkIn)
                 } else {
                     val key = monthYearFormatter.format(date)
@@ -113,32 +137,23 @@ class HistoryFragment : Fragment() {
 
         if (thisWeek.isNotEmpty()) {
             result.add(HistoryListItem.Header("This Week"))
-            thisWeek.forEach { result.add(HistoryListItem.Entry(it)) }
+            thisWeek.forEach { result.add(HistoryListItem.Entry(it, "This Week")) }
         }
 
-        // Map keys are already in order because sortedCheckIns was sorted
-        // But let's be safe and iterate through the sorted checkins to maintain order
         val processedMonths = mutableSetOf<String>()
         sortedCheckIns.forEach { checkIn ->
             val date = try { dateFormatter.parse(checkIn.date) } catch (e: Exception) { null }
-            if (date != null && date.before(oneWeekAgo) && !isSameDay(date, oneWeekAgo)) {
+            if (date != null && date.before(startOfThisWeek)) {
                 val key = monthYearFormatter.format(date)
                 if (!processedMonths.contains(key)) {
                     result.add(HistoryListItem.Header(key))
-                    olderGroups[key]?.forEach { result.add(HistoryListItem.Entry(it)) }
+                    olderGroups[key]?.forEach { result.add(HistoryListItem.Entry(it, key)) }
                     processedMonths.add(key)
                 }
             }
         }
 
         return result
-    }
-
-    private fun isSameDay(d1: Date, d2: Date): Boolean {
-        val cal1 = Calendar.getInstance().apply { time = d1 }
-        val cal2 = Calendar.getInstance().apply { time = d2 }
-        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
-               cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 
     private fun handleShareAction(checkIn: CheckIn) {
@@ -244,5 +259,6 @@ class HistoryFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        historyAdapter = null
     }
 }

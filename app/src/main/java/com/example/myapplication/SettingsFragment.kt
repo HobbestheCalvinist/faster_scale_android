@@ -15,6 +15,7 @@ import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -35,6 +36,10 @@ class SettingsFragment : Fragment() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var db: AppDatabase
     private lateinit var contactAdapter: ContactAdapter
+
+    private val daysOfWeek = listOf(
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    )
 
     private val contactPickerLauncher = registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
         uri?.let { processSelectedContact(it) }
@@ -62,6 +67,7 @@ class SettingsFragment : Fragment() {
         db = AppDatabase.getDatabase(requireContext())
 
         setupReminderSettings()
+        setupStartDaySettings()
         setupShareSettings()
         setupContactSettings()
     }
@@ -94,6 +100,38 @@ class SettingsFragment : Fragment() {
                     scheduleReminder(h, m)
                 }
             }, hour, minute, false).show()
+        }
+    }
+
+    private fun setupStartDaySettings() {
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, daysOfWeek)
+        binding.autocompletetextviewStartDay.setAdapter(adapter)
+
+        val currentStartDay = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
+        val currentDayName = when (currentStartDay) {
+            Calendar.SUNDAY -> "Sunday"
+            Calendar.MONDAY -> "Monday"
+            Calendar.TUESDAY -> "Tuesday"
+            Calendar.WEDNESDAY -> "Wednesday"
+            Calendar.THURSDAY -> "Thursday"
+            Calendar.FRIDAY -> "Friday"
+            Calendar.SATURDAY -> "Saturday"
+            else -> "Sunday"
+        }
+        binding.autocompletetextviewStartDay.setText(currentDayName, false)
+
+        binding.autocompletetextviewStartDay.setOnItemClickListener { _, _, position, _ ->
+            val selectedDay = when (daysOfWeek[position]) {
+                "Sunday" -> Calendar.SUNDAY
+                "Monday" -> Calendar.MONDAY
+                "Tuesday" -> Calendar.TUESDAY
+                "Wednesday" -> Calendar.WEDNESDAY
+                "Thursday" -> Calendar.THURSDAY
+                "Friday" -> Calendar.FRIDAY
+                "Saturday" -> Calendar.SATURDAY
+                else -> Calendar.SUNDAY
+            }
+            sharedPreferences.edit().putInt("start_day_of_week", selectedDay).apply()
         }
     }
 

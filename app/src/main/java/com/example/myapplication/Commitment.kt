@@ -9,7 +9,10 @@ data class Commitment(
     val title: String,
     val description: String,
     val targetCompletions: Int = 1,
-    val currentCompletions: Int = 0,
+    val completedDaysMask: Int = 0, // Bitmask for 7 days (0-6)
     val isCompleted: Boolean = false,
     val timestamp: Long = System.currentTimeMillis()
-)
+) {
+    val currentCompletionsCount: Int
+        get() = Integer.bitCount(completedDaysMask)
+}

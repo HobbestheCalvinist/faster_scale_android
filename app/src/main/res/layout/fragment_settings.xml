@@ -62,13 +62,29 @@
                 android:text="Change Time" />
         </LinearLayout>
 
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/textinputlayout_start_day"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Start Day of Week"
+            app:layout_constraintTop_toBottomOf="@id/layout_reminder_time">
+
+            <AutoCompleteTextView
+                android:id="@+id/autocompletetextview_start_day"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none" />
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switch_share_trusted"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Share only with trusted contacts"
-            app:layout_constraintTop_toBottomOf="@id/layout_reminder_time" />
+            app:layout_constraintTop_toBottomOf="@id/textinputlayout_start_day" />
 
         <!-- Manage Contacts Section -->
         <LinearLayout

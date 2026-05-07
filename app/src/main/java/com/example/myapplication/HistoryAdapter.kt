@@ -10,26 +10,41 @@ import com.example.myapplication.databinding.ItemHistoryHeaderBinding
 
 sealed class HistoryListItem {
     data class Header(val title: String) : HistoryListItem()
-    data class Entry(val checkIn: CheckIn) : HistoryListItem()
+    data class Entry(val checkIn: CheckIn, val groupTitle: String) : HistoryListItem()
 }
 
 class HistoryAdapter(
-    private var items: List<HistoryListItem>,
+    private var allItems: List<HistoryListItem>,
     private val isTrustedOnly: Boolean,
     private val onEditClick: (CheckIn) -> Unit,
     private val onDeleteClick: (CheckIn) -> Unit,
     private val onShareClick: (CheckIn) -> Unit
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
-    private var expandedPosition = -1
+    private var expandedEntryPosition = -1
+    private var visibleItems: List<HistoryListItem> = emptyList()
+    private val collapsedGroups = mutableSetOf<String>()
+
+    init {
+        updateVisibleItems()
+    }
 
     companion object {
         private const val TYPE_HEADER = 0
         private const val TYPE_ITEM = 1
     }
 
+    private fun updateVisibleItems() {
+        visibleItems = allItems.filter { item ->
+            when (item) {
+                is HistoryListItem.Header -> true
+                is HistoryListItem.Entry -> !collapsedGroups.contains(item.groupTitle)
+            }
+        }
+    }
+
     override fun getItemViewType(position: Int): Int {
-        return when (items[position]) {
+        return when (visibleItems[position]) {
             is HistoryListItem.Header -> TYPE_HEADER
             is HistoryListItem.Entry -> TYPE_ITEM
         }
@@ -38,21 +53,31 @@ class HistoryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
-            TYPE_HEADER -> {
-                val binding = ItemHistoryHeaderBinding.inflate(inflater, parent, false)
-                HeaderViewHolder(binding)
-            }
-            else -> {
-                val binding = ItemHistoryBinding.inflate(inflater, parent, false)
-                ItemViewHolder(binding)
-            }
+            TYPE_HEADER -> HeaderViewHolder(ItemHistoryHeaderBinding.inflate(inflater, parent, false))
+            else -> ItemViewHolder(ItemHistoryBinding.inflate(inflater, parent, false))
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val item = items[position]
+        val item = visibleItems[position]
         if (holder is HeaderViewHolder && item is HistoryListItem.Header) {
             holder.binding.textviewHeaderTitle.text = item.title
+            val isCollapsed = collapsedGroups.contains(item.title)
+            
+            // Visual indicator for expand/collapse
+            holder.binding.textviewHeaderTitle.setCompoundDrawablesWithIntrinsicBounds(
+                0, 0, if (isCollapsed) android.R.drawable.arrow_down_float else android.R.drawable.arrow_up_float, 0
+            )
+            
+            holder.itemView.setOnClickListener {
+                if (collapsedGroups.contains(item.title)) {
+                    collapsedGroups.remove(item.title)
+                } else {
+                    collapsedGroups.add(item.title)
+                }
+                updateVisibleItems()
+                notifyDataSetChanged()
+            }
         } else if (holder is ItemViewHolder && item is HistoryListItem.Entry) {
             val checkIn = item.checkIn
             val context = holder.itemView.context
@@ -72,7 +97,7 @@ class HistoryAdapter(
             }
             holder.binding.textviewHistoryScale.setTextColor(ContextCompat.getColor(context, colorRes))
             
-            val isExpanded = position == expandedPosition
+            val isExpanded = position == expandedEntryPosition
             if (checkIn.description.isNotEmpty() && isExpanded) {
                 holder.binding.textviewHistoryDescription.text = checkIn.description
                 holder.binding.textviewHistoryDescription.visibility = View.VISIBLE
@@ -81,10 +106,10 @@ class HistoryAdapter(
             }
 
             holder.itemView.setOnClickListener {
-                val prevExpanded = expandedPosition
-                expandedPosition = if (isExpanded) -1 else holder.adapterPosition
+                val prevExpanded = expandedEntryPosition
+                expandedEntryPosition = if (isExpanded) -1 else holder.adapterPosition
                 notifyItemChanged(prevExpanded)
-                notifyItemChanged(expandedPosition)
+                notifyItemChanged(expandedEntryPosition)
             }
 
             holder.binding.buttonEdit.setOnClickListener { onEditClick(checkIn) }
@@ -99,10 +124,17 @@ class HistoryAdapter(
         }
     }
 
-    override fun getItemCount() = items.size
+    override fun getItemCount() = visibleItems.size
 
     fun updateData(newItems: List<HistoryListItem>) {
-        this.items = newItems
+        this.allItems = newItems
+        updateVisibleItems()
+        notifyDataSetChanged()
+    }
+    
+    fun collapseGroups(groupTitles: List<String>) {
+        collapsedGroups.addAll(groupTitles)
+        updateVisibleItems()
         notifyDataSetChanged()
     }
 

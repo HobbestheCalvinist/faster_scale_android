@@ -1,5 +1,6 @@
 package com.example.myapplication
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -16,12 +17,15 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentCommitmentBinding
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 class CommitmentFragment : Fragment() {
 
     private var _binding: FragmentCommitmentBinding? = null
     private val binding get() = _binding!!
     private lateinit var db: AppDatabase
+    private lateinit var activeAdapter: CommitmentAdapter
+    private lateinit var completedAdapter: CommitmentAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,15 +38,20 @@ class CommitmentFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         db = AppDatabase.getDatabase(requireContext())
+        
+        val prefs = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        val startDay = prefs.getInt("start_day_of_week", Calendar.SUNDAY)
 
-        val activeAdapter = CommitmentAdapter(
+        activeAdapter = CommitmentAdapter(
+            startDayOfWeek = startDay,
             onUpdateCommitment = { commitment -> updateCommitment(commitment) },
             onEdit = { commitment -> showAddEditCommitmentDialog(commitment) },
             onDelete = { commitment -> deleteCommitment(commitment) },
             onReset = { commitment -> resetCommitment(commitment) }
         )
 
-        val completedAdapter = CommitmentAdapter(
+        completedAdapter = CommitmentAdapter(
+            startDayOfWeek = startDay,
             onUpdateCommitment = { commitment -> updateCommitment(commitment) },
             onEdit = { commitment -> showAddEditCommitmentDialog(commitment) },
             onDelete = { commitment -> deleteCommitment(commitment) },
@@ -79,6 +88,15 @@ class CommitmentFragment : Fragment() {
         binding.fabAddCommitment.setOnClickListener {
             showAddEditCommitmentDialog()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh start day in case it was changed in settings
+        val prefs = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        val startDay = prefs.getInt("start_day_of_week", Calendar.SUNDAY)
+        activeAdapter.updateStartDay(startDay)
+        completedAdapter.updateStartDay(startDay)
     }
 
     private fun showAddEditCommitmentDialog(commitment: Commitment? = null) {
@@ -152,7 +170,7 @@ class CommitmentFragment : Fragment() {
     private fun resetCommitment(commitment: Commitment) {
         viewLifecycleOwner.lifecycleScope.launch {
             db.commitmentDao().updateCommitment(
-                commitment.copy(currentCompletions = 0, isCompleted = false)
+                commitment.copy(completedDaysMask = 0, isCompleted = false)
             )
         }
     }
