@@ -23,7 +23,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "faster_scale_database"
                 )
-                .fallbackToDestructiveMigration()
+                // Removed fallbackToDestructiveMigration() to prevent accidental data loss.
+                // In production, migrations should be provided.
                 .build()
                 INSTANCE = instance
                 instance

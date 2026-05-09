@@ -24,9 +24,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentSettingsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.text.SimpleDateFormat
 import java.util.*
 
 class SettingsFragment : Fragment() {
@@ -53,6 +59,14 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private val createBackupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri: Uri? ->
+        uri?.let { performBackup(it) }
+    }
+
+    private val restoreBackupLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        uri?.let { performRestore(it) }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -70,6 +84,7 @@ class SettingsFragment : Fragment() {
         setupStartDaySettings()
         setupShareSettings()
         setupContactSettings()
+        setupBackupRestore()
     }
 
     private fun setupReminderSettings() {
@@ -167,6 +182,82 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             db.contactDao().getAllContacts().collect { contacts ->
                 contactAdapter.submitList(contacts)
+            }
+        }
+    }
+
+    private fun setupBackupRestore() {
+        binding.buttonBackup.setOnClickListener {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            createBackupLauncher.launch("faster_scale_backup_$timeStamp.json")
+        }
+
+        binding.buttonRestore.setOnClickListener {
+            restoreBackupLauncher.launch(arrayOf("application/json"))
+        }
+    }
+
+    private fun performBackup(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val checkIns = db.checkInDao().getAllCheckIns().first()
+                val contacts = db.contactDao().getAllContacts().first()
+                val schedules = db.callScheduleDao().getAllSchedules().first()
+                val commitments = db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()
+                val prefs = sharedPreferences.all
+
+                val backupData = BackupData(checkIns, contacts, schedules, commitments, prefs)
+                val json = Gson().toJson(backupData)
+
+                withContext(Dispatchers.IO) {
+                    requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.write(json.toByteArray())
+                    }
+                }
+                Toast.makeText(requireContext(), "Backup created successfully!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Backup failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun performRestore(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val json = withContext(Dispatchers.IO) {
+                    requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                        BufferedReader(InputStreamReader(inputStream)).readText()
+                    } ?: ""
+                }
+
+                val backupData = Gson().fromJson(json, BackupData::class.java)
+
+                withContext(Dispatchers.IO) {
+                    // Restore Database
+                    backupData.checkIns.forEach { db.checkInDao().insertCheckIn(it) }
+                    backupData.contacts.forEach { db.contactDao().insertContact(it) }
+                    backupData.callSchedules.forEach { db.callScheduleDao().insertSchedule(it) }
+                    backupData.commitments.forEach { db.commitmentDao().insertCommitment(it) }
+
+                    // Restore Preferences
+                    val editor = sharedPreferences.edit()
+                    backupData.preferences.forEach { (key, value) ->
+                        when (value) {
+                            is Boolean -> editor.putBoolean(key, value)
+                            is Int -> editor.putInt(key, value)
+                            is Long -> editor.putLong(key, value)
+                            is Float -> editor.putFloat(key, value)
+                            is String -> editor.putString(key, value)
+                        }
+                    }
+                    editor.apply()
+                }
+
+                Toast.makeText(requireContext(), "Restore completed! Please restart the app for all changes to take effect.", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Restore failed: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
