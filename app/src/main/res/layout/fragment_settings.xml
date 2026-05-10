@@ -12,12 +12,13 @@
         android:padding="16dp"
         android:animateLayoutChanges="true">
 
+        <!-- Notifications Section -->
         <TextView
-            android:id="@+id/textview_settings_title"
+            android:id="@+id/textview_notifications_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Settings"
-            android:textSize="24sp"
+            android:text="@string/settings_notifications"
+            android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -26,9 +27,9 @@
             android:id="@+id/switch_reminder"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Daily Reminder"
-            app:layout_constraintTop_toBottomOf="@id/textview_settings_title" />
+            android:layout_marginTop="16dp"
+            android:text="@string/settings_checkin_reminder"
+            app:layout_constraintTop_toBottomOf="@id/textview_notifications_title" />
 
         <LinearLayout
             android:id="@+id/layout_reminder_time"
@@ -37,13 +38,15 @@
             android:layout_marginTop="8dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
             app:layout_constraintTop_toBottomOf="@id/switch_reminder">
 
             <TextView
                 android:id="@+id/textview_time_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Reminder Time:" />
+                android:text="@string/settings_checkin_time" />
 
             <TextView
                 android:id="@+id/textview_selected_time"
@@ -51,7 +54,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="08:00 AM"
+                android:text="@string/default_reminder_time"
                 android:textStyle="bold" />
 
             <Button
@@ -59,8 +62,46 @@
                 style="?attr/materialButtonOutlinedStyle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Change Time" />
+                android:text="@string/button_change_time" />
         </LinearLayout>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switch_phone_call_reminder"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_phone_call_reminder"
+            app:layout_constraintTop_toBottomOf="@id/layout_reminder_time" />
+
+        <Button
+            android:id="@+id/button_test_notification"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/settings_test_notifications"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/switch_phone_call_reminder" />
+
+        <View
+            android:id="@+id/divider_notifications"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="?android:attr/listDivider"
+            app:layout_constraintTop_toBottomOf="@id/button_test_notification" />
+
+        <!-- General Section -->
+        <TextView
+            android:id="@+id/textview_general_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_general"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider_notifications" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textinputlayout_start_day"
@@ -68,8 +109,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="Start Day of Week"
-            app:layout_constraintTop_toBottomOf="@id/layout_reminder_time">
+            android:hint="@string/settings_start_day"
+            app:layout_constraintTop_toBottomOf="@id/textview_general_title">
 
             <AutoCompleteTextView
                 android:id="@+id/autocompletetextview_start_day"
@@ -83,57 +124,73 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Share only with trusted contacts"
+            android:text="@string/settings_share_trusted"
             app:layout_constraintTop_toBottomOf="@id/textinputlayout_start_day" />
 
         <!-- Manage Contacts Section -->
+        <View
+            android:id="@+id/divider_contacts"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="?android:attr/listDivider"
+            app:layout_constraintTop_toBottomOf="@id/switch_share_trusted" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layout_contacts_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:paddingVertical="8dp"
+            app:layout_constraintTop_toBottomOf="@id/divider_contacts">
+
+            <TextView
+                android:id="@+id/textview_contacts_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_manage_contacts"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/imageview_contacts_expand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/content_description_expand_contacts"
+                android:src="@android:drawable/arrow_down_float"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
         <LinearLayout
-            android:id="@+id/layout_manage_contacts"
+            android:id="@+id/layout_contacts_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            app:layout_constraintTop_toBottomOf="@id/switch_share_trusted">
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/layout_contacts_header">
 
-            <View
-                android:id="@+id/divider"
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="24dp"
-                android:background="?android:attr/listDivider" />
-
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="match_parent"
+            <Button
+                android:id="@+id/button_add_contact"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp">
-
-                <TextView
-                    android:id="@+id/textview_contacts_title"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Manage Contacts"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <Button
-                    android:id="@+id/button_add_contact"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Add Contact"
-                    app:icon="@android:drawable/ic_input_add"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                android:layout_gravity="end"
+                android:text="@string/settings_add_contact"
+                app:icon="@android:drawable/ic_input_add" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerview_contacts"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_contact" />
         </LinearLayout>
@@ -144,14 +201,14 @@
             android:layout_height="1dp"
             android:layout_marginTop="24dp"
             android:background="?android:attr/listDivider"
-            app:layout_constraintTop_toBottomOf="@id/layout_manage_contacts" />
+            app:layout_constraintTop_toBottomOf="@id/layout_contacts_content" />
 
         <TextView
             android:id="@+id/textview_backup_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:text="Data Management"
+            android:text="@string/settings_data_management"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
@@ -171,7 +228,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Backup Data"
+                android:text="@string/settings_backup"
                 app:icon="@android:drawable/ic_menu_save" />
 
             <Button
@@ -181,7 +238,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Restore Data"
+                android:text="@string/settings_restore"
                 app:icon="@android:drawable/ic_menu_upload" />
         </LinearLayout>
 

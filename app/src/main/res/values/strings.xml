@@ -186,4 +186,20 @@
     <string name="time_not_set">Not set</string>
     <string name="call_schedule_item_format">%1$s at %2$s</string>
     <string name="call_schedule_contact_format">Contact: %1$s</string>
+
+    <!-- Settings Strings -->
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_checkin_reminder">Daily Check-in Reminder</string>
+    <string name="settings_checkin_time">Check-in Time:</string>
+    <string name="settings_phone_call_reminder">Phone Call Reminder</string>
+    <string name="settings_test_notifications">Test Notifications</string>
+    <string name="settings_general">General</string>
+    <string name="settings_manage_contacts">Manage Contacts</string>
+    <string name="settings_add_contact">Add Contact</string>
+    <string name="settings_data_management">Data Management</string>
+    <string name="settings_backup">Backup Data</string>
+    <string name="settings_restore">Restore Data</string>
+    <string name="settings_share_trusted">Share only with trusted contacts</string>
+    <string name="settings_start_day">Start Day of Week</string>
+    <string name="content_description_expand_contacts">Expand or collapse contacts section</string>
 </resources>

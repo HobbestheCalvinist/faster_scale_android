@@ -25,7 +25,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentSettingsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -80,14 +79,15 @@ class SettingsFragment : Fragment() {
         sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
         db = AppDatabase.getDatabase(requireContext())
 
-        setupReminderSettings()
+        setupNotificationSettings()
         setupStartDaySettings()
         setupShareSettings()
         setupContactSettings()
         setupBackupRestore()
     }
 
-    private fun setupReminderSettings() {
+    private fun setupNotificationSettings() {
+        // Daily Check-in Reminder
         val isReminderEnabled = sharedPreferences.getBoolean("reminder_enabled", false)
         val hour = sharedPreferences.getInt("reminder_hour", 8)
         val minute = sharedPreferences.getInt("reminder_minute", 0)
@@ -115,6 +115,24 @@ class SettingsFragment : Fragment() {
                     scheduleReminder(h, m)
                 }
             }, hour, minute, false).show()
+        }
+
+        // Phone Call Reminder
+        val isPhoneCallReminderEnabled = sharedPreferences.getBoolean("phone_call_reminder_enabled", false)
+        binding.switchPhoneCallReminder.isChecked = isPhoneCallReminderEnabled
+        binding.switchPhoneCallReminder.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("phone_call_reminder_enabled", isChecked).apply()
+            // Logic for scheduling phone call reminders would go here
+            if (isChecked) {
+                Toast.makeText(requireContext(), "Phone call reminders enabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Test Notifications
+        binding.buttonTestNotification.setOnClickListener {
+            val intent = Intent(requireContext(), ReminderReceiver::class.java)
+            requireContext().sendBroadcast(intent)
+            Toast.makeText(requireContext(), "Test notification sent", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -153,19 +171,18 @@ class SettingsFragment : Fragment() {
     private fun setupShareSettings() {
         val isShareTrustedEnabled = sharedPreferences.getBoolean("share_trusted_only", false)
         binding.switchShareTrusted.isChecked = isShareTrustedEnabled
-        updateContactSectionVisibility(isShareTrustedEnabled)
-
-        binding.switchShareTrusted.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("share_trusted_only", isChecked).apply()
-            updateContactSectionVisibility(isChecked)
-        }
-    }
-
-    private fun updateContactSectionVisibility(isVisible: Boolean) {
-        binding.layoutManageContacts.visibility = if (isVisible) View.VISIBLE else View.GONE
     }
 
     private fun setupContactSettings() {
+        // Collapsible Section
+        binding.layoutContactsHeader.setOnClickListener {
+            val isVisible = binding.layoutContactsContent.visibility == View.VISIBLE
+            binding.layoutContactsContent.visibility = if (isVisible) View.GONE else View.VISIBLE
+            binding.imageviewContactsExpand.setImageResource(
+                if (isVisible) android.R.drawable.arrow_down_float else android.R.drawable.arrow_up_float
+            )
+        }
+
         contactAdapter = ContactAdapter { contact ->
             showDeleteContactConfirmation(contact)
         }
