@@ -1,8 +1,10 @@
 package com.example.myapplication
 
 import android.graphics.Typeface
+import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.databinding.ItemCalendarDayBinding
@@ -31,16 +33,24 @@ class CalendarAdapter(
         return ViewHolder(binding)
     }
 
+    private fun getThemeColor(context: android.content.Context, @AttrRes attrRes: Int): Int {
+        val typedValue = TypedValue()
+        context.theme.resolveAttribute(attrRes, typedValue, true)
+        return typedValue.data
+    }
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val day = days[position]
         holder.binding.dayLabel.text = day.dayOfMonth
 
         val context = holder.itemView.context
+        val colorOnSurface = getThemeColor(context, com.google.android.material.R.attr.colorOnSurface)
+        val colorPrimary = getThemeColor(context, com.google.android.material.R.attr.colorPrimary)
         
         // Default State
         holder.binding.cardDay.setCardBackgroundColor(ContextCompat.getColor(context, android.R.color.transparent))
         holder.binding.cardDay.strokeWidth = 0
-        holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, android.R.color.tab_indicator_text))
+        holder.binding.dayLabel.setTextColor(colorOnSurface)
         holder.binding.dayLabel.setTypeface(null, Typeface.NORMAL)
         holder.binding.cardDay.alpha = 1f
 
@@ -65,20 +75,20 @@ class CalendarAdapter(
 
             colorRes?.let {
                 holder.binding.cardDay.setCardBackgroundColor(ContextCompat.getColor(context, it))
-                holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, R.color.white))
+                holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, android.R.color.white))
             }
         }
 
         // Highlight Selected Day
         if (day.isSelected) {
             holder.binding.cardDay.strokeWidth = 4
-            holder.binding.cardDay.setStrokeColor(ContextCompat.getColorStateList(context, R.color.purple_500))
+            holder.binding.cardDay.setStrokeColor(android.content.res.ColorStateList.valueOf(colorPrimary))
             holder.binding.dayLabel.setTypeface(null, Typeface.BOLD)
         }
 
         // Indicator for Today
         if (day.isToday && day.scaleOption == null) {
-            holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, R.color.purple_500))
+            holder.binding.dayLabel.setTextColor(colorPrimary)
             holder.binding.dayLabel.setTypeface(null, Typeface.BOLD)
         }
 

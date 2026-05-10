@@ -41,17 +41,27 @@
                         android:id="@+id/calendar_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:headerColor="@color/purple_500"
-                        app:headerLabelColor="@color/white"
-                        app:selectionColor="@color/purple_500"
-                        app:selectionLabelColor="@color/white"
-                        app:todayLabelColor="@color/purple_500"
-                        app:daysLabelsColor="@color/black"
-                        app:pagesColor="@android:color/transparent"
-                        app:abbreviationsBarColor="@android:color/transparent"
-                        app:abbreviationsLabelsColor="@color/black"
-                        app:type="one_day_picker" />
 
+                        app:type="one_day_picker"
+
+                        app:headerColor="@color/calendar_background"
+                        app:headerLabelColor="@color/calendar_header_text"
+
+                        app:pagesColor="@color/calendar_background"
+                        app:abbreviationsBarColor="@color/calendar_background"
+                        app:abbreviationsLabelsColor="@color/calendar_abbreviation_text"
+
+                        app:daysLabelsColor="@color/calendar_day_text"
+                        app:anotherMonthsDaysLabelsColor="@color/calendar_other_month_text"
+                        app:disabledDaysLabelsColor="@color/calendar_disabled_text"
+                        app:highlightedDaysLabelsColor="@color/calendar_today_text"
+
+                        app:selectionColor="@color/calendar_selection_circle"
+                        app:selectionLabelColor="@color/calendar_selection_text"
+                        app:todayLabelColor="@color/calendar_today_text"
+
+                        app:forwardButtonSrc="@android:drawable/ic_media_next"
+                        app:previousButtonSrc="@android:drawable/ic_media_previous" />
                     <!-- Legend -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -66,14 +76,14 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="16dp"
                             android:text="● Check-in"
-                            android:textColor="@color/purple_500"
+                            android:textColor="@color/calendar_selection_circle"
                             android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="📞 Call Scheduled"
-                            android:textColor="@color/black"
+                            android:textColor="@color/calendar_header_text"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -153,35 +163,19 @@
                         android:layout_height="wrap_content"
                         android:padding="20dp">
 
-                        <TextView
-                            android:id="@+id/textview_selected_date"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:visibility="gone"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:text="October 24, 2023" />
-
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/textinputlayout_scale"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Select FASTER Scale"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:startIconContentDescription="Clear selection"
-                            app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
+                            app:layout_constraintTop_toTopOf="parent">
 
                             <AutoCompleteTextView
                                 android:id="@+id/autocompletetextview_scale"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:inputType="none"
-                                android:paddingTop="16dp"
-                                android:paddingBottom="16dp"
-                                android:singleLine="false" />
+                                android:inputType="none" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <LinearLayout
@@ -193,20 +187,11 @@
                             android:visibility="gone"
                             app:layout_constraintTop_toBottomOf="@id/textinputlayout_scale">
 
-                            <TextView
-                                android:id="@+id/textview_behaviors_label"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="8dp"
-                                android:text="@string/label_behaviors"
-                                android:textAppearance="?attr/textAppearanceTitleSmall" />
-
                             <com.google.android.material.chip.ChipGroup
                                 android:id="@+id/chipgroup_behaviors"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                app:chipSpacingHorizontal="8dp"
-                                app:chipSpacingVertical="4dp" />
+                                app:chipSpacingHorizontal="8dp" />
                         </LinearLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
@@ -215,10 +200,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="24dp"
-                            android:hint="@string/hint_description"
-                            app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section"
-                            app:startIconContentDescription="Clear text"
-                            app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
+                            android:hint="Notes"
+                            app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section">
 
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/edittext_description"
@@ -226,21 +209,16 @@
                                 android:layout_height="wrap_content"
                                 android:gravity="top"
                                 android:inputType="textMultiLine"
-                                android:minLines="5" />
+                                android:minLines="3" />
                         </com.google.android.material.textfield.TextInputLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_save"
-                            style="@style/Widget.Material3.Button"
                             android:layout_width="match_parent"
                             android:layout_height="64dp"
                             android:layout_marginTop="24dp"
-                            android:text="@string/save_checkin"
-                            app:icon="@drawable/ic_save"
-                            app:iconGravity="textStart"
-                            app:iconSize="24dp"
+                            android:text="Save Check-in"
                             app:layout_constraintTop_toBottomOf="@id/textinputlayout_description" />
-
                     </androidx.constraintlayout.widget.ConstraintLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

@@ -106,6 +106,9 @@ class CheckinFragment : Fragment() {
     }
 
     private fun setupCalendar() {
+        // Programmatic styling removed to avoid library version conflicts. 
+        // All styling is now handled in fragment_first.xml and custom day layouts.
+        
         binding.calendarView.setOnDayClickListener(object : OnDayClickListener {
             override fun onDayClick(eventDay: EventDay) {
                 selectedCalendar.time = eventDay.calendar.time
@@ -123,7 +126,6 @@ class CheckinFragment : Fragment() {
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Combine both data sources to ensure the calendar refreshes when either changes
                 db.checkInDao().getAllCheckIns().combine(db.callScheduleDao().getAllSchedules()) { checkIns, schedules ->
                     checkIns to schedules
                 }.collect { (checkIns, schedules) ->
@@ -138,7 +140,6 @@ class CheckinFragment : Fragment() {
     private fun refreshCalendarMarkers() {
         val calendarDays = mutableListOf<CalendarDay>()
         
-        // Map check-ins by unique date key for robust matching
         val dayCheckInMap = mutableMapOf<String, CheckIn>()
         currentCheckIns.forEach { checkIn ->
             try {
@@ -158,7 +159,7 @@ class CheckinFragment : Fragment() {
         cal.add(Calendar.MONTH, -3)
         cal.clearTime()
         val endCal = Calendar.getInstance()
-        endCal.add(Calendar.MONTH, 12) // Show forward for a year
+        endCal.add(Calendar.MONTH, 12) 
         endCal.clearTime()
 
         while (cal.before(endCal)) {
@@ -170,12 +171,9 @@ class CheckinFragment : Fragment() {
 
             if (checkIn != null || hasCall) {
                 val day = CalendarDay(cal.clone() as Calendar)
-                
-                // Combine background color and call icon into one Drawable
                 day.backgroundDrawable = getCalendarDayDrawable(checkIn?.scaleOption, hasCall)
                 
                 if (checkIn != null) {
-                    // Fix: setLabelColor expects a color resource ID in many versions of this library
                     day.labelColor = R.color.white
                 }
                 
@@ -193,12 +191,10 @@ class CheckinFragment : Fragment() {
     private fun getCalendarDayDrawable(scaleOption: String?, hasCall: Boolean): Drawable? {
         val layers = mutableListOf<Drawable>()
         
-        // Layer 0: Check-in background circle
         if (scaleOption != null) {
             layers.add(getCircleDrawable(scaleOption))
         }
         
-        // Layer 1: Phone icon
         if (hasCall) {
             val callIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_call)?.mutate()
             callIcon?.let {
@@ -213,15 +209,12 @@ class CheckinFragment : Fragment() {
         
         val layered = LayerDrawable(layers.toTypedArray())
         
-        // Positioning logic for layered icons
         if (scaleOption != null && hasCall) {
-            // Icon is smaller and in the top-right corner if there is a background
             val iconSize = dpToPx(12)
             layered.setLayerGravity(1, Gravity.TOP or Gravity.END)
             layered.setLayerSize(1, iconSize, iconSize)
             layered.setLayerInset(1, 0, dpToPx(2), dpToPx(2), 0)
         } else if (hasCall) {
-            // Icon is centered and larger if there is no background
             val iconSize = dpToPx(18)
             layered.setLayerSize(0, iconSize, iconSize)
             layered.setLayerGravity(0, Gravity.CENTER)

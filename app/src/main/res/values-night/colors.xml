@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Calendar Theme Colors (Dark) -->
+    <color name="calendar_background">#121212</color>
+    <color name="calendar_header_text">#E6E1E5</color>
+    <color name="calendar_day_text">#E6E1E5</color>
+    <color name="calendar_abbreviation_text">#CAC4D0</color>
+    <color name="calendar_selection_circle">#D0BCFF</color>
+    <color name="calendar_selection_text">#381E72</color>
+    <color name="calendar_today_text">#D0BCFF</color>
+
+    <color name="calendar_other_month_text">#888888</color>
+    <color name="calendar_disabled_text">#666666</color>
+</resources>
