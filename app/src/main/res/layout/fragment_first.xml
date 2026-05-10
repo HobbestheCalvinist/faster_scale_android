@@ -8,13 +8,13 @@
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollview_content"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,7 +22,7 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Progress Calendar Card -->
+            <!-- Applandeo Calendar Card -->
             <com.google.android.material.card.MaterialCardView
                 style="?attr/materialCardViewFilledStyle"
                 android:layout_width="match_parent"
@@ -35,82 +35,45 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="8dp">
 
-                    <LinearLayout
+                    <com.applandeo.materialcalendarview.CalendarView
+                        android:id="@+id/calendar_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/textview_calendar_month"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textStyle="bold"
-                            tools:text="Last 2 Weeks" />
-
-                        <ImageButton
-                            android:id="@+id/button_prev_month"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Previous"
-                            android:src="@android:drawable/ic_media_previous"
-                            app:tint="?attr/colorPrimary" />
-
-                        <ImageButton
-                            android:id="@+id/button_next_month"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Next"
-                            android:src="@android:drawable/ic_media_next"
-                            app:tint="?attr/colorPrimary" />
-                    </LinearLayout>
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/recyclerview_calendar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:nestedScrollingEnabled="false"
-                        tools:itemCount="14"
-                        tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                        tools:listitem="@layout/item_calendar_day"
-                        tools:spanCount="7" />
+                        app:headerColor="@color/purple_500"
+                        app:headerLabelColor="@color/white"
+                        app:selectionColor="@color/purple_500"
+                        app:selectionLabelColor="@color/white"
+                        app:todayLabelColor="@color/purple_500"
+                        app:daysLabelsColor="@color/black"
+                        app:pagesColor="@android:color/transparent"
+                        app:abbreviationsBarColor="@android:color/transparent"
+                        app:abbreviationsLabelsColor="@color/black"
+                        app:type="one_day_picker" />
 
                     <!-- Legend -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
+                        android:layout_marginTop="8dp"
                         android:gravity="center"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingBottom="8dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="● Restoration"
-                            android:textColor="@color/color_restoration"
+                            android:layout_marginEnd="16dp"
+                            android:text="● Check-in"
+                            android:textColor="@color/purple_500"
                             android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:text="● Anxiety"
-                            android:textColor="@color/color_anxiety"
-                            android:textSize="12sp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="● Relapse"
-                            android:textColor="@color/color_relapse"
+                            android:text="📞 Call Scheduled"
+                            android:textColor="@color/black"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -129,7 +92,7 @@
                     android:orientation="vertical"
                     android:animateLayoutChanges="true">
 
-                    <!-- View Mode Layout (similar to history item) -->
+                    <!-- View Mode Layout -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/layout_view_mode"
                         android:layout_width="match_parent"
@@ -183,56 +146,31 @@
                             tools:text="Notes will appear here..." />
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
-                    <!-- Edit Mode Layout (Original Form) -->
+                    <!-- Edit Mode Layout -->
                     <androidx.constraintlayout.widget.ConstraintLayout
                         android:id="@+id/layout_edit_mode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="20dp">
 
-                        <LinearLayout
-                            android:id="@+id/layout_date_picker"
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:id="@+id/textview_selected_date"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:gravity="center_vertical"
-                            android:orientation="horizontal"
-                            app:layout_constraintTop_toTopOf="parent">
-
-                            <TextView
-                                android:id="@+id/textview_date_label"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/label_date_selector"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textStyle="bold" />
-
-                            <TextView
-                                android:id="@+id/textview_selected_date"
-                                android:layout_width="0dp"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
-                                android:layout_weight="1"
-                                android:textAppearance="?attr/textAppearanceBodyLarge"
-                                tools:text="October 24, 2023" />
-
-                            <Button
-                                android:id="@+id/button_pick_date"
-                                style="?attr/materialButtonOutlinedStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/button_change_date" />
-                        </LinearLayout>
+                            android:visibility="gone"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent"
+                            tools:text="October 24, 2023" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/textinputlayout_scale"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="24dp"
                             android:hint="Select FASTER Scale"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/layout_date_picker"
+                            app:layout_constraintTop_toTopOf="parent"
                             app:startIconContentDescription="Clear selection"
                             app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">
 
@@ -246,16 +184,13 @@
                                 android:singleLine="false" />
                         </com.google.android.material.textfield.TextInputLayout>
 
-                        <!-- Section that opens up -->
                         <LinearLayout
                             android:id="@+id/layout_behaviors_section"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="16dp"
                             android:orientation="vertical"
                             android:visibility="gone"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/textinputlayout_scale">
 
                             <TextView
@@ -277,12 +212,10 @@
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/textinputlayout_description"
                             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="24dp"
                             android:hint="@string/hint_description"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section"
                             app:startIconContentDescription="Clear text"
                             app:startIconDrawable="@android:drawable/ic_menu_close_clear_cancel">

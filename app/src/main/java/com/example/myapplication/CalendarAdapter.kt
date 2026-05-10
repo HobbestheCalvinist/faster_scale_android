@@ -33,15 +33,15 @@ class CalendarAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val day = days[position]
-        holder.binding.textviewDay.text = day.dayOfMonth
+        holder.binding.dayLabel.text = day.dayOfMonth
 
         val context = holder.itemView.context
         
         // Default State
         holder.binding.cardDay.setCardBackgroundColor(ContextCompat.getColor(context, android.R.color.transparent))
         holder.binding.cardDay.strokeWidth = 0
-        holder.binding.textviewDay.setTextColor(ContextCompat.getColor(context, android.R.color.tab_indicator_text))
-        holder.binding.textviewDay.setTypeface(null, Typeface.NORMAL)
+        holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, android.R.color.tab_indicator_text))
+        holder.binding.dayLabel.setTypeface(null, Typeface.NORMAL)
         holder.binding.cardDay.alpha = 1f
 
         if (day.dayOfMonth.isEmpty()) {
@@ -65,7 +65,7 @@ class CalendarAdapter(
 
             colorRes?.let {
                 holder.binding.cardDay.setCardBackgroundColor(ContextCompat.getColor(context, it))
-                holder.binding.textviewDay.setTextColor(ContextCompat.getColor(context, R.color.white))
+                holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, R.color.white))
             }
         }
 
@@ -73,13 +73,13 @@ class CalendarAdapter(
         if (day.isSelected) {
             holder.binding.cardDay.strokeWidth = 4
             holder.binding.cardDay.setStrokeColor(ContextCompat.getColorStateList(context, R.color.purple_500))
-            holder.binding.textviewDay.setTypeface(null, Typeface.BOLD)
+            holder.binding.dayLabel.setTypeface(null, Typeface.BOLD)
         }
 
         // Indicator for Today
         if (day.isToday && day.scaleOption == null) {
-            holder.binding.textviewDay.setTextColor(ContextCompat.getColor(context, R.color.purple_500))
-            holder.binding.textviewDay.setTypeface(null, Typeface.BOLD)
+            holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, R.color.purple_500))
+            holder.binding.dayLabel.setTypeface(null, Typeface.BOLD)
         }
 
         holder.itemView.setOnClickListener {
