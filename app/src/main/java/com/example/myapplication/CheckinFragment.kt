@@ -107,11 +107,11 @@ class CheckinFragment : Fragment() {
 
         val today = Calendar.getInstance().apply { clearTime() }
         val dayCheckInMap = currentCheckIns.associateBy { it.date.trim() }
-        val callDaysOfWeek = currentSchedules.map { it.dayOfWeek.trim() }.toSet()
+        val callDaysOfWeek = currentSchedules.map { it.dayOfWeek.trim().lowercase() }.toSet()
 
         for (i in 0 until 28) {
             val dateStr = dateFormatter.format(cal.time)
-            val dayName = SimpleDateFormat("EEEE", Locale.US).format(cal.time)
+            val dayName = SimpleDateFormat("EEEE", Locale.US).format(cal.time).lowercase()
             val checkIn = dayCheckInMap[dateStr]
             
             days.add(com.example.myapplication.CalendarDay(

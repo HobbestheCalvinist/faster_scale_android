@@ -28,6 +28,9 @@
     <style name="Theme.MyApplication" parent="Base.Theme.MyApplication" />
 
     <style name="Theme.MyApplication.Dialog" parent="Theme.Material3.DayNight.Dialog">
-        <item name="colorPrimary">#D0BCFF</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="colorPrimary">?attr/colorPrimary</item>
+        <item name="colorSurface">@color/calendar_background</item>
     </style>
 </resources>
