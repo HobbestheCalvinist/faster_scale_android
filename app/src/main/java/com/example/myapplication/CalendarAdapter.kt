@@ -3,6 +3,7 @@ package com.example.myapplication
 import android.graphics.Typeface
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
@@ -14,7 +15,8 @@ data class CalendarDay(
     val dateString: String?, // Format: "MMMM dd, yyyy"
     val scaleOption: String? = null,
     val isSelected: Boolean = false,
-    val isToday: Boolean = false
+    val isToday: Boolean = false,
+    val hasCall: Boolean = false
 )
 
 class CalendarAdapter(
@@ -53,6 +55,7 @@ class CalendarAdapter(
         holder.binding.dayLabel.setTextColor(colorOnSurface)
         holder.binding.dayLabel.setTypeface(null, Typeface.NORMAL)
         holder.binding.cardDay.alpha = 1f
+        holder.binding.dayIcon.visibility = View.GONE
 
         if (day.dayOfMonth.isEmpty()) {
             holder.binding.cardDay.alpha = 0f
@@ -62,14 +65,14 @@ class CalendarAdapter(
 
         // Color coding based on scale
         if (day.scaleOption != null) {
-            val colorRes = when (day.scaleOption) {
-                context.getString(R.string.scale_restoration) -> R.color.color_restoration
-                context.getString(R.string.scale_forgetting) -> R.color.color_forgetting
-                context.getString(R.string.scale_anxiety) -> R.color.color_anxiety
-                context.getString(R.string.scale_speeding) -> R.color.color_speeding
-                context.getString(R.string.scale_ticked_off) -> R.color.color_ticked_off
-                context.getString(R.string.scale_exhausted) -> R.color.color_exhausted
-                context.getString(R.string.scale_relapse) -> R.color.color_relapse
+            val colorRes = when {
+                day.scaleOption.contains("Restoration", ignoreCase = true) -> R.color.color_restoration
+                day.scaleOption.contains("Forgetting", ignoreCase = true) -> R.color.color_forgetting
+                day.scaleOption.contains("Anxiety", ignoreCase = true) -> R.color.color_anxiety
+                day.scaleOption.contains("Speeding", ignoreCase = true) -> R.color.color_speeding
+                day.scaleOption.contains("Ticked", ignoreCase = true) -> R.color.color_ticked_off
+                day.scaleOption.contains("Exhausted", ignoreCase = true) -> R.color.color_exhausted
+                day.scaleOption.contains("Relapse", ignoreCase = true) -> R.color.color_relapse
                 else -> null
             }
 
@@ -77,6 +80,17 @@ class CalendarAdapter(
                 holder.binding.cardDay.setCardBackgroundColor(ContextCompat.getColor(context, it))
                 holder.binding.dayLabel.setTextColor(ContextCompat.getColor(context, android.R.color.white))
             }
+        }
+
+        // Call Icon
+        if (day.hasCall) {
+            holder.binding.dayIcon.visibility = View.VISIBLE
+            val iconTint = if (day.scaleOption != null) {
+                ContextCompat.getColor(context, android.R.color.white)
+            } else {
+                colorPrimary
+            }
+            holder.binding.dayIcon.setColorFilter(iconTint)
         }
 
         // Highlight Selected Day

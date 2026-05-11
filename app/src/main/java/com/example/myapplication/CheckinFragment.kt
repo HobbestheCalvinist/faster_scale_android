@@ -1,24 +1,17 @@
 package com.example.myapplication
 
-import android.graphics.Color
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.LayerDrawable
+import android.content.Context
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.TypedValue
-import android.view.Gravity
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.applandeo.materialcalendarview.CalendarDay
-import com.applandeo.materialcalendarview.EventDay
-import com.applandeo.materialcalendarview.listeners.OnDayClickListener
+import androidx.recyclerview.widget.GridLayoutManager
 import com.example.myapplication.databinding.FragmentFirstBinding
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -30,12 +23,14 @@ class CheckinFragment : Fragment() {
     private var _binding: FragmentFirstBinding? = null
     private val binding get() = _binding!!
 
+    private lateinit var sharedPreferences: SharedPreferences
     private val selectedCalendar = Calendar.getInstance().apply { clearTime() }
     private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
     private lateinit var db: AppDatabase
 
     private var currentCheckIns: List<CheckIn> = emptyList()
     private var currentSchedules: List<CallSchedule> = emptyList()
+    private var calendarAdapter: CalendarAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -47,6 +42,7 @@ class CheckinFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
         db = AppDatabase.getDatabase(requireContext())
 
         setupCalendar()
@@ -75,17 +71,8 @@ class CheckinFragment : Fragment() {
     }
 
     private fun setupCalendar() {
-        binding.calendarView.setOnDayClickListener(object : OnDayClickListener {
-            override fun onDayClick(eventDay: EventDay) {
-                selectedCalendar.time = eventDay.calendar.time
-                selectedCalendar.clearTime()
-                loadCheckInForSelectedDate()
-            }
-        })
-        
-        try {
-            binding.calendarView.setDate(selectedCalendar)
-        } catch (e: Exception) {}
+        binding.calendarRecyclerView.layoutManager = GridLayoutManager(requireContext(), 7)
+        refreshCalendarGrid()
     }
 
     private fun observeData() {
@@ -96,104 +83,66 @@ class CheckinFragment : Fragment() {
                 }.collect { (checkIns, schedules) ->
                     currentCheckIns = checkIns
                     currentSchedules = schedules
-                    refreshCalendarMarkers()
+                    refreshCalendarGrid()
                     loadCheckInForSelectedDate()
                 }
             }
         }
     }
 
-    private fun refreshCalendarMarkers() {
-        val calendarDays = mutableListOf<CalendarDay>()
+    private fun refreshCalendarGrid() {
+        val days = mutableListOf<com.example.myapplication.CalendarDay>()
         
-        val dayCheckInMap = mutableMapOf<String, CheckIn>()
-        currentCheckIns.forEach { checkIn ->
-            try {
-                dateFormatter.parse(checkIn.date.trim())?.let { date ->
-                    val c = Calendar.getInstance().apply { 
-                        time = date
-                        clearTime()
-                    }
-                    dayCheckInMap[dateToKey(c)] = checkIn
-                }
-            } catch (e: Exception) {}
+        // Find start of 4-week window
+        val startDayOfWeek = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
+        val cal = Calendar.getInstance()
+        cal.clearTime()
+        
+        // Move to start of current week
+        while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
+            cal.add(Calendar.DAY_OF_YEAR, -1)
         }
+        // Move back 3 more weeks to have 4 weeks total
+        cal.add(Calendar.DAY_OF_YEAR, -21)
 
+        val today = Calendar.getInstance().apply { clearTime() }
+        val dayCheckInMap = currentCheckIns.associateBy { it.date.trim() }
         val callDaysOfWeek = currentSchedules.map { it.dayOfWeek.trim() }.toSet()
 
-        val cal = Calendar.getInstance()
-        cal.add(Calendar.MONTH, -3)
-        cal.clearTime()
-        val endCal = Calendar.getInstance()
-        endCal.add(Calendar.MONTH, 12) 
-        endCal.clearTime()
-
-        while (cal.before(endCal)) {
-            val dayKey = dateToKey(cal)
+        for (i in 0 until 28) {
+            val dateStr = dateFormatter.format(cal.time)
             val dayName = SimpleDateFormat("EEEE", Locale.US).format(cal.time)
-
-            val checkIn = dayCheckInMap[dayKey]
-            val hasCall = callDaysOfWeek.contains(dayName)
-
-            if (checkIn != null || hasCall) {
-                val day = CalendarDay(cal.clone() as Calendar)
-                day.backgroundDrawable = getCalendarDayDrawable(checkIn?.scaleOption, hasCall)
-                
-                if (checkIn != null) {
-                    day.labelColor = R.color.white
-                }
-                
-                calendarDays.add(day)
-            }
+            val checkIn = dayCheckInMap[dateStr]
+            
+            days.add(com.example.myapplication.CalendarDay(
+                dayOfMonth = cal.get(Calendar.DAY_OF_MONTH).toString(),
+                dateString = dateStr,
+                scaleOption = checkIn?.scaleOption,
+                isSelected = isSameDay(cal, selectedCalendar),
+                isToday = isSameDay(cal, today),
+                hasCall = callDaysOfWeek.contains(dayName)
+            ))
             cal.add(Calendar.DAY_OF_YEAR, 1)
         }
-        binding.calendarView.setCalendarDays(calendarDays)
-    }
 
-    private fun dateToKey(cal: Calendar): String {
-        return "${cal.get(Calendar.YEAR)}-${cal.get(Calendar.MONTH)}-${cal.get(Calendar.DAY_OF_MONTH)}"
-    }
-
-    private fun getCalendarDayDrawable(scaleOption: String?, hasCall: Boolean): Drawable? {
-        val layers = mutableListOf<Drawable>()
-        
-        if (scaleOption != null) {
-            layers.add(getCircleDrawable(scaleOption))
-        }
-        
-        if (hasCall) {
-            val callIcon = ContextCompat.getDrawable(requireContext(), R.drawable.ic_call)?.mutate()
-            callIcon?.let {
-                val tint = if (scaleOption != null) Color.WHITE 
-                           else getThemeColor(com.google.android.material.R.attr.colorPrimary)
-                DrawableCompat.setTint(it, tint)
-                layers.add(it)
+        calendarAdapter = CalendarAdapter(days) { clickedDay ->
+            clickedDay.dateString?.let {
+                try {
+                    dateFormatter.parse(it)?.let { date ->
+                        selectedCalendar.time = date
+                        selectedCalendar.clearTime()
+                        refreshCalendarGrid()
+                        loadCheckInForSelectedDate()
+                    }
+                } catch (e: Exception) {}
             }
         }
-        
-        if (layers.isEmpty()) return null
-        
-        val layered = LayerDrawable(layers.toTypedArray())
-        
-        if (scaleOption != null && hasCall) {
-            val iconSize = dpToPx(12)
-            layered.setLayerGravity(1, Gravity.TOP or Gravity.END)
-            layered.setLayerSize(1, iconSize, iconSize)
-            layered.setLayerInset(1, 0, dpToPx(2), dpToPx(2), 0)
-        } else if (hasCall) {
-            val iconSize = dpToPx(18)
-            layered.setLayerSize(0, iconSize, iconSize)
-            layered.setLayerGravity(0, Gravity.CENTER)
-        }
-        
-        return layered
+        binding.calendarRecyclerView.adapter = calendarAdapter
     }
 
-    private fun getCircleDrawable(scaleOption: String): Drawable {
-        val shape = GradientDrawable()
-        shape.shape = GradientDrawable.OVAL
-        shape.setColor(getScaleColor(scaleOption))
-        return shape
+    private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+               cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR)
     }
 
     private fun getScaleColor(scaleOption: String): Int {
@@ -209,20 +158,6 @@ class CheckinFragment : Fragment() {
             else -> R.color.purple_500
         }
         return ContextCompat.getColor(requireContext(), colorRes)
-    }
-
-    private fun getThemeColor(attr: Int): Int {
-        val typedValue = TypedValue()
-        requireContext().theme.resolveAttribute(attr, typedValue, true)
-        return typedValue.data
-    }
-
-    private fun dpToPx(dp: Int): Int {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dp.toFloat(),
-            resources.displayMetrics
-        ).toInt()
     }
 
     private fun loadCheckInForSelectedDate() {

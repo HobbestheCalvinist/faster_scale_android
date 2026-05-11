@@ -94,7 +94,7 @@ class HistoryFragment : Fragment() {
                     }
 
                     binding.buttonShareAll.setOnClickListener {
-                        handleShareAllAction(checkIns)
+                        handleShareWeekAction(checkIns)
                     }
                 }
             }
@@ -114,22 +114,7 @@ class HistoryFragment : Fragment() {
         }
 
         val result = mutableListOf<HistoryListItem>()
-        
-        // Get start day from prefs
-        val startDayOfWeek = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
-        
-        // Calculate the beginning of the current week
-        val cal = Calendar.getInstance()
-        cal.set(Calendar.HOUR_OF_DAY, 0)
-        cal.set(Calendar.MINUTE, 0)
-        cal.set(Calendar.SECOND, 0)
-        cal.set(Calendar.MILLISECOND, 0)
-        
-        // Adjust back to the start of the week day
-        while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
-            cal.add(Calendar.DAY_OF_YEAR, -1)
-        }
-        val startOfThisWeek = cal.time
+        val startOfThisWeek = getStartOfThisWeek()
 
         val thisWeek = mutableListOf<CheckIn>()
         val olderGroups = mutableMapOf<String, MutableList<CheckIn>>()
@@ -167,6 +152,20 @@ class HistoryFragment : Fragment() {
         return result
     }
 
+    private fun getStartOfThisWeek(): Date {
+        val startDayOfWeek = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        
+        while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
+            cal.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        return cal.time
+    }
+
     private fun handleShareAction(checkIn: CheckIn) {
         val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
         if (shareTrustedOnly) {
@@ -176,14 +175,26 @@ class HistoryFragment : Fragment() {
         }
     }
 
-    private fun handleShareAllAction(checkIns: List<CheckIn>) {
-        if (checkIns.isEmpty()) return
+    private fun handleShareWeekAction(checkIns: List<CheckIn>) {
+        val startOfThisWeek = getStartOfThisWeek()
+        val thisWeekCheckIns = checkIns.filter {
+            val date = try { dateFormatter.parse(it.date) } catch (e: Exception) { null }
+            date != null && !date.before(startOfThisWeek)
+        }.sortedBy { 
+            try { dateFormatter.parse(it.date) } catch (e: Exception) { Date(0) }
+        }
+
+        if (thisWeekCheckIns.isEmpty()) {
+            Toast.makeText(requireContext(), "No check-ins for this week to share.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
-        val report = getHistoryReport(checkIns)
+        val report = getHistoryReport(thisWeekCheckIns, "This Week's Report")
         if (shareTrustedOnly) {
             shareWithTrustedContacts(report)
         } else {
-            shareGeneric(report, "Share History Report")
+            shareGeneric(report, "Share Weekly Report")
         }
     }
 
@@ -197,8 +208,8 @@ class HistoryFragment : Fragment() {
         """.trimIndent()
     }
 
-    private fun getHistoryReport(checkIns: List<CheckIn>): String {
-        val report = StringBuilder("Faster Scale Recovery - Full History\n\n")
+    private fun getHistoryReport(checkIns: List<CheckIn>, title: String): String {
+        val report = StringBuilder("Faster Scale Recovery - $title\n\n")
         checkIns.forEach { checkIn ->
             report.append("Date: ${checkIn.date}\n")
             report.append("Level: ${checkIn.scaleOption}\n")

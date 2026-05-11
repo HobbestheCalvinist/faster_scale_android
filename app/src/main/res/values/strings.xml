@@ -211,4 +211,5 @@
     <string name="scheduled_contact_format">Contact: %1$s</string>
     <string name="scheduled_phone_format">Phone: %1$s</string>
     <string name="call_schedule_combined_format">%1$s - %2$s - %3$s</string>
+    <string name="action_share_week">Share Week</string>
 </resources>

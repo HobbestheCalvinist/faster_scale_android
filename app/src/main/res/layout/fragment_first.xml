@@ -20,9 +20,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="16dp"
+            android:animateLayoutChanges="true">
 
-            <!-- Applandeo Calendar Card -->
+            <!-- Custom 4-Week Calendar Card -->
             <com.google.android.material.card.MaterialCardView
                 style="?attr/materialCardViewFilledStyle"
                 android:layout_width="match_parent"
@@ -35,50 +36,39 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp">
+                    android:padding="12dp">
 
-                    <com.applandeo.materialcalendarview.CalendarView
-                        android:id="@+id/calendar_view"
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/calendar_recycler_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        app:type="one_day_picker"
-                        app:headerColor="@color/calendar_background"
-                        app:headerLabelColor="@color/calendar_header_text"
-                        app:pagesColor="@color/calendar_background"
-                        app:abbreviationsBarColor="@color/calendar_background"
-                        app:abbreviationsLabelsColor="@color/calendar_abbreviation_text"
-                        app:daysLabelsColor="@color/calendar_day_text"
-                        app:anotherMonthsDaysLabelsColor="@color/calendar_other_month_text"
-                        app:disabledDaysLabelsColor="@color/calendar_disabled_text"
-                        app:highlightedDaysLabelsColor="@color/calendar_today_text"
-                        app:selectionColor="@color/calendar_selection_circle"
-                        app:selectionLabelColor="@color/calendar_selection_text"
-                        app:todayLabelColor="@color/calendar_today_text"
-                        app:forwardButtonSrc="@android:drawable/ic_media_next"
-                        app:previousButtonSrc="@android:drawable/ic_media_previous" />
+                        android:nestedScrollingEnabled="false"
+                        tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                        tools:spanCount="7"
+                        tools:listitem="@layout/item_calendar_day" />
 
                     <!-- Legend -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="16dp"
                         android:gravity="center"
                         android:orientation="horizontal"
-                        android:paddingBottom="8dp">
+                        android:paddingBottom="4dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="16dp"
                             android:text="● Check-in"
-                            android:textColor="@color/calendar_selection_circle"
+                            android:textColor="@color/color_restoration"
                             android:textSize="12sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="📞 Call Scheduled"
-                            android:textColor="@color/calendar_header_text"
+                            android:textColor="?attr/colorPrimary"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
@@ -137,7 +127,7 @@
                         android:layout_marginTop="4dp"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="?attr/colorPrimary"
-                        android:text="📞 Call Made"
+                        android:text="@string/label_call_made_simple"
                         android:visibility="gone"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@id/textview_summary_scale"
