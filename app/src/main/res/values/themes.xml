@@ -23,4 +23,8 @@
     </style>
 
     <style name="Theme.MyApplication" parent="Base.Theme.MyApplication" />
+
+    <style name="Theme.MyApplication.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">@color/purple_500</item>
+    </style>
 </resources>

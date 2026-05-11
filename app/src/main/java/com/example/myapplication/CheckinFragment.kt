@@ -11,11 +11,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.view.children
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -23,7 +20,6 @@ import com.applandeo.materialcalendarview.CalendarDay
 import com.applandeo.materialcalendarview.EventDay
 import com.applandeo.materialcalendarview.listeners.OnDayClickListener
 import com.example.myapplication.databinding.FragmentFirstBinding
-import com.google.android.material.chip.Chip
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -41,18 +37,6 @@ class CheckinFragment : Fragment() {
     private var currentCheckIns: List<CheckIn> = emptyList()
     private var currentSchedules: List<CallSchedule> = emptyList()
 
-    private val scaleOptions by lazy {
-        listOf(
-            getString(R.string.scale_restoration) to getString(R.string.desc_restoration),
-            getString(R.string.scale_forgetting) to getString(R.string.desc_forgetting),
-            getString(R.string.scale_anxiety) to getString(R.string.desc_anxiety),
-            getString(R.string.scale_speeding) to getString(R.string.desc_speeding),
-            getString(R.string.scale_ticked_off) to getString(R.string.desc_ticked_off),
-            getString(R.string.scale_exhausted) to getString(R.string.desc_exhausted),
-            getString(R.string.scale_relapse) to getString(R.string.desc_relapse)
-        )
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -65,37 +49,22 @@ class CheckinFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         db = AppDatabase.getDatabase(requireContext())
 
-        arguments?.getString("selectedDate")?.let { dateStr ->
-            try {
-                dateFormatter.parse(dateStr.trim())?.let { date ->
-                    selectedCalendar.time = date
-                    selectedCalendar.clearTime()
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-
         setupCalendar()
-        setupDropdown()
-        updateDateDisplay()
         loadCheckInForSelectedDate()
         observeData()
 
-        binding.buttonSave.setOnClickListener {
-            saveCheckIn()
+        binding.buttonCheckIn.setOnClickListener {
+            showCheckInDialog(selectedCalendar.timeInMillis)
         }
 
         binding.buttonEditCheckin.setOnClickListener {
-            showEditMode(true)
+            showCheckInDialog(selectedCalendar.timeInMillis)
         }
+    }
 
-        binding.textinputlayoutDescription.setStartIconOnClickListener {
-            binding.edittextDescription.setText("")
-            binding.chipgroupBehaviors.children.forEach { view ->
-                if (view is Chip) view.isChecked = false
-            }
-        }
+    private fun showCheckInDialog(dateMillis: Long) {
+        val dialog = CheckInDialogFragment.newInstance(dateMillis)
+        dialog.show(childFragmentManager, "CheckInDialog")
     }
 
     private fun Calendar.clearTime() {
@@ -106,14 +75,10 @@ class CheckinFragment : Fragment() {
     }
 
     private fun setupCalendar() {
-        // Programmatic styling removed to avoid library version conflicts. 
-        // All styling is now handled in fragment_first.xml and custom day layouts.
-        
         binding.calendarView.setOnDayClickListener(object : OnDayClickListener {
             override fun onDayClick(eventDay: EventDay) {
                 selectedCalendar.time = eventDay.calendar.time
                 selectedCalendar.clearTime()
-                updateDateDisplay()
                 loadCheckInForSelectedDate()
             }
         })
@@ -132,6 +97,7 @@ class CheckinFragment : Fragment() {
                     currentCheckIns = checkIns
                     currentSchedules = schedules
                     refreshCalendarMarkers()
+                    loadCheckInForSelectedDate()
                 }
             }
         }
@@ -259,137 +225,24 @@ class CheckinFragment : Fragment() {
         ).toInt()
     }
 
-    private fun setupDropdown() {
-        val displayOptions = scaleOptions.map { "${it.first}: ${it.second}" }
-        val adapter = ArrayAdapter(requireContext(), R.layout.item_dropdown_multiline, displayOptions)
-        binding.autocompletetextviewScale.setAdapter(adapter)
-
-        binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
-            val selectedText = adapter.getItem(position) ?: ""
-            val selectedOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: ""
-            if (selectedOption.isNotEmpty()) {
-                updateBehaviorsSection(selectedOption)
-            }
-        }
-
-        binding.textinputlayoutScale.setStartIconOnClickListener {
-            binding.autocompletetextviewScale.setText(null, false)
-            adapter.filter.filter(null)
-            binding.layoutBehaviorsSection.visibility = View.GONE
-            binding.autocompletetextviewScale.clearFocus()
-        }
-    }
-
-    private fun updateBehaviorsSection(scaleOption: String) {
-        binding.layoutBehaviorsSection.visibility = View.VISIBLE
-        binding.chipgroupBehaviors.removeAllViews()
-
-        val behaviorsResId = when {
-            scaleOption.trim().contains(getString(R.string.scale_restoration)) -> R.array.behaviors_restoration
-            scaleOption.trim().contains(getString(R.string.scale_forgetting)) -> R.array.behaviors_forgetting
-            scaleOption.trim().contains(getString(R.string.scale_anxiety)) -> R.array.behaviors_anxiety
-            scaleOption.trim().contains(getString(R.string.scale_speeding)) -> R.array.behaviors_speeding
-            scaleOption.trim().contains(getString(R.string.scale_ticked_off)) -> R.array.behaviors_ticked_off
-            scaleOption.trim().contains(getString(R.string.scale_exhausted)) -> R.array.behaviors_exhausted
-            scaleOption.trim().contains(getString(R.string.scale_relapse)) -> R.array.behaviors_relapse
-            else -> null
-        }
-
-        if (behaviorsResId != null) {
-            val behaviors = resources.getStringArray(behaviorsResId)
-            behaviors.forEach { behavior ->
-                val chip = Chip(requireContext()).apply {
-                    text = behavior
-                    isCheckable = true
-                    setOnClickListener {
-                        val currentText = binding.edittextDescription.text.toString()
-                        val behaviorText = "• $behavior"
-                        if (currentText.isEmpty()) {
-                            binding.edittextDescription.setText(behaviorText)
-                        } else if (!currentText.contains(behavior)) {
-                            if (!currentText.endsWith("\n")) {
-                                binding.edittextDescription.append("\n")
-                            }
-                            binding.edittextDescription.append(behaviorText)
-                        }
-                        binding.edittextDescription.setSelection(binding.edittextDescription.text?.length ?: 0)
-                        isChecked = true
-                    }
-                }
-                binding.chipgroupBehaviors.addView(chip)
-            }
-        }
-    }
-
-    private fun updateDateDisplay() {
-        val dateStr = dateFormatter.format(selectedCalendar.time)
-        binding.textviewViewDate.text = dateStr
-    }
-
     private fun loadCheckInForSelectedDate() {
         val date = dateFormatter.format(selectedCalendar.time)
         viewLifecycleOwner.lifecycleScope.launch {
             val checkIn = db.checkInDao().getCheckInByDate(date.trim())
-            val adapter = binding.autocompletetextviewScale.adapter as? ArrayAdapter<*>
 
             if (checkIn != null) {
-                binding.textviewViewScale.text = checkIn.scaleOption
-                binding.textviewViewDescription.text = checkIn.description
-                binding.textviewViewDescription.visibility = if (checkIn.description.isEmpty()) View.GONE else View.VISIBLE
+                binding.cardSummary.visibility = View.VISIBLE
+                binding.textviewSummaryDate.text = checkIn.date
+                binding.textviewSummaryScale.text = checkIn.scaleOption
+                binding.textviewSummaryScale.setTextColor(getScaleColor(checkIn.scaleOption))
                 
-                binding.textviewViewScale.setTextColor(getScaleColor(checkIn.scaleOption))
-
-                binding.edittextDescription.setText(checkIn.description)
-                val displayValue = scaleOptions.find { it.first == checkIn.scaleOption.trim() }?.let { "${it.first}: ${it.second}" }
-                if (displayValue != null) {
-                    binding.autocompletetextviewScale.setText(displayValue, false)
-                    adapter?.filter?.filter(null)
-                    updateBehaviorsSection(checkIn.scaleOption)
-                }
+                binding.textviewSummaryDescription.text = checkIn.description
+                binding.textviewSummaryDescription.visibility = if (checkIn.description.isEmpty()) View.GONE else View.VISIBLE
                 
-                showEditMode(false)
+                binding.textviewSummaryCall.visibility = if (checkIn.callMade) View.VISIBLE else View.GONE
             } else {
-                binding.autocompletetextviewScale.setText(null, false)
-                adapter?.filter?.filter(null)
-                binding.edittextDescription.setText("")
-                binding.layoutBehaviorsSection.visibility = View.GONE
-                showEditMode(true)
+                binding.cardSummary.visibility = View.GONE
             }
-        }
-    }
-
-    private fun showEditMode(isEdit: Boolean) {
-        if (isEdit) {
-            binding.layoutEditMode.visibility = View.VISIBLE
-            binding.layoutViewMode.visibility = View.GONE
-        } else {
-            binding.layoutEditMode.visibility = View.GONE
-            binding.layoutViewMode.visibility = View.VISIBLE
-        }
-    }
-
-    private fun saveCheckIn() {
-        val selectedText = binding.autocompletetextviewScale.text.toString()
-        if (selectedText.isBlank()) {
-            Toast.makeText(requireContext(), "Please select a scale option", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val scaleOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: selectedText
-        val description = binding.edittextDescription.text.toString()
-        val date = dateFormatter.format(selectedCalendar.time)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            val existingCheckIn = db.checkInDao().getCheckInByDate(date.trim())
-            val checkIn = if (existingCheckIn != null) {
-                existingCheckIn.copy(scaleOption = scaleOption, description = description)
-            } else {
-                CheckIn(date = date, scaleOption = scaleOption, description = description)
-            }
-
-            db.checkInDao().insertCheckIn(checkIn)
-            Toast.makeText(requireContext(), "Check-in saved!", Toast.LENGTH_SHORT).show()
-            loadCheckInForSelectedDate()
         }
     }
 

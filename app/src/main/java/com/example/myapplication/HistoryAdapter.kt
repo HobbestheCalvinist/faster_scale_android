@@ -97,6 +97,8 @@ class HistoryAdapter(
             }
             holder.binding.textviewHistoryScale.setTextColor(ContextCompat.getColor(context, colorRes))
             
+            holder.binding.textviewHistoryCall.visibility = if (checkIn.callMade) View.VISIBLE else View.GONE
+
             val isExpanded = position == expandedEntryPosition
             if (checkIn.description.isNotEmpty() && isExpanded) {
                 holder.binding.textviewHistoryDescription.text = checkIn.description

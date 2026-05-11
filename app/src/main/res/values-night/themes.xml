@@ -24,4 +24,10 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">#1C1B1F</item>
     </style>
+
+    <style name="Theme.MyApplication" parent="Base.Theme.MyApplication" />
+
+    <style name="Theme.MyApplication.Dialog" parent="Theme.Material3.DayNight.Dialog">
+        <item name="colorPrimary">#D0BCFF</item>
+    </style>
 </resources>

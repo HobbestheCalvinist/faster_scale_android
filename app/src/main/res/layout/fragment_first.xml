@@ -41,27 +41,22 @@
                         android:id="@+id/calendar_view"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-
                         app:type="one_day_picker"
-
                         app:headerColor="@color/calendar_background"
                         app:headerLabelColor="@color/calendar_header_text"
-
                         app:pagesColor="@color/calendar_background"
                         app:abbreviationsBarColor="@color/calendar_background"
                         app:abbreviationsLabelsColor="@color/calendar_abbreviation_text"
-
                         app:daysLabelsColor="@color/calendar_day_text"
                         app:anotherMonthsDaysLabelsColor="@color/calendar_other_month_text"
                         app:disabledDaysLabelsColor="@color/calendar_disabled_text"
                         app:highlightedDaysLabelsColor="@color/calendar_today_text"
-
                         app:selectionColor="@color/calendar_selection_circle"
                         app:selectionLabelColor="@color/calendar_selection_text"
                         app:todayLabelColor="@color/calendar_today_text"
-
                         app:forwardButtonSrc="@android:drawable/ic_media_next"
                         app:previousButtonSrc="@android:drawable/ic_media_previous" />
+
                     <!-- Legend -->
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -89,139 +84,90 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Check-in Container Card -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_check_in"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_marginBottom="16dp"
+                android:text="@string/action_check_in"
+                app:icon="@android:drawable/ic_menu_edit"
+                app:cornerRadius="24dp" />
+
+            <!-- Selected Date Summary Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_summary"
                 style="?attr/materialCardViewElevatedStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="24dp">
+                app:cardCornerRadius="24dp"
+                android:visibility="gone"
+                tools:visibility="visible">
 
-                <LinearLayout
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:animateLayoutChanges="true">
+                    android:padding="20dp">
 
-                    <!-- View Mode Layout -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/layout_view_mode"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/textview_summary_date"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:padding="20dp"
-                        android:visibility="gone">
+                        android:textAppearance="?attr/textAppearanceTitleLarge"
+                        android:textStyle="bold"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="Oct 24, 2023" />
 
-                        <TextView
-                            android:id="@+id/textview_view_date"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textAppearance="?attr/textAppearanceTitleLarge"
-                            android:textStyle="bold"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toTopOf="parent"
-                            tools:text="Oct 24, 2023" />
-
-                        <TextView
-                            android:id="@+id/textview_view_scale"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textStyle="bold"
-                            app:layout_constraintEnd_toStartOf="@id/button_edit_checkin"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/textview_view_date"
-                            tools:text="Restoration" />
-
-                        <ImageButton
-                            android:id="@+id/button_edit_checkin"
-                            android:layout_width="48dp"
-                            android:layout_height="48dp"
-                            android:background="?attr/selectableItemBackgroundBorderless"
-                            android:contentDescription="Edit Check-in"
-                            android:src="@android:drawable/ic_menu_edit"
-                            app:layout_constraintBottom_toBottomOf="@id/textview_view_scale"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintTop_toTopOf="@id/textview_view_date"
-                            app:tint="?attr/colorPrimary" />
-
-                        <TextView
-                            android:id="@+id/textview_view_description"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:textAppearance="?attr/textAppearanceBodyLarge"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@id/textview_view_scale"
-                            tools:text="Notes will appear here..." />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-
-                    <!-- Edit Mode Layout -->
-                    <androidx.constraintlayout.widget.ConstraintLayout
-                        android:id="@+id/layout_edit_mode"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/textview_summary_scale"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:padding="20dp">
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textStyle="bold"
+                        app:layout_constraintEnd_toStartOf="@id/button_edit_checkin"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/textview_summary_date"
+                        tools:text="Restoration" />
 
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/textinputlayout_scale"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:hint="Select FASTER Scale"
-                            app:layout_constraintTop_toTopOf="parent">
+                    <TextView
+                        android:id="@+id/textview_summary_call"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorPrimary"
+                        android:text="📞 Call Made"
+                        android:visibility="gone"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/textview_summary_scale"
+                        tools:visibility="visible" />
 
-                            <AutoCompleteTextView
-                                android:id="@+id/autocompletetextview_scale"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:inputType="none" />
-                        </com.google.android.material.textfield.TextInputLayout>
+                    <ImageButton
+                        android:id="@+id/button_edit_checkin"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="Edit Check-in"
+                        android:src="@android:drawable/ic_menu_edit"
+                        app:layout_constraintBottom_toBottomOf="@id/textview_summary_scale"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/textview_summary_date"
+                        app:tint="?attr/colorPrimary" />
 
-                        <LinearLayout
-                            android:id="@+id/layout_behaviors_section"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="16dp"
-                            android:orientation="vertical"
-                            android:visibility="gone"
-                            app:layout_constraintTop_toBottomOf="@id/textinputlayout_scale">
-
-                            <com.google.android.material.chip.ChipGroup
-                                android:id="@+id/chipgroup_behaviors"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                app:chipSpacingHorizontal="8dp" />
-                        </LinearLayout>
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/textinputlayout_description"
-                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="24dp"
-                            android:hint="Notes"
-                            app:layout_constraintTop_toBottomOf="@id/layout_behaviors_section">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/edittext_description"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="top"
-                                android:inputType="textMultiLine"
-                                android:minLines="3" />
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/button_save"
-                            android:layout_width="match_parent"
-                            android:layout_height="64dp"
-                            android:layout_marginTop="24dp"
-                            android:text="Save Check-in"
-                            app:layout_constraintTop_toBottomOf="@id/textinputlayout_description" />
-                    </androidx.constraintlayout.widget.ConstraintLayout>
-                </LinearLayout>
+                    <TextView
+                        android:id="@+id/textview_summary_description"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/textview_summary_call"
+                        tools:text="Notes will appear here..." />
+                </androidx.constraintlayout.widget.ConstraintLayout>
             </com.google.android.material.card.MaterialCardView>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

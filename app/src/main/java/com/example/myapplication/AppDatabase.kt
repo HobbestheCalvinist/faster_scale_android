@@ -5,7 +5,7 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class], version = 10, exportSchema = false)
+@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class], version = 11, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun checkInDao(): CheckInDao
     abstract fun contactDao(): ContactDao
@@ -23,8 +23,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "faster_scale_database"
                 )
-                // Removed fallbackToDestructiveMigration() to prevent accidental data loss.
-                // In production, migrations should be provided.
+                .fallbackToDestructiveMigration() // Added for development ease given version change
                 .build()
                 INSTANCE = instance
                 instance

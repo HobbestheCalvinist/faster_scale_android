@@ -25,14 +25,11 @@ class CallScheduleAdapter(
     inner class ViewHolder(private val binding: ItemCallScheduleBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(schedule: CallSchedule) {
             val context = binding.root.context
-            binding.textviewDayTime.text = context.getString(
-                R.string.call_schedule_item_format,
+            binding.textviewCombinedInfo.text = context.getString(
+                R.string.call_schedule_combined_format,
+                schedule.contactName,
                 schedule.dayOfWeek,
                 schedule.time
-            )
-            binding.textviewContactName.text = context.getString(
-                R.string.call_schedule_contact_format,
-                schedule.contactName
             )
             
             binding.buttonCall.setOnClickListener { onCallClick(schedule) }

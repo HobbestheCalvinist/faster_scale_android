@@ -14,7 +14,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.flow.first
@@ -51,6 +50,10 @@ class HistoryFragment : Fragment() {
 
         binding.recyclerviewHistory.layoutManager = LinearLayoutManager(context)
 
+        binding.buttonHistoryCheckIn.setOnClickListener {
+            showCheckInDialog(System.currentTimeMillis())
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 db.checkInDao().getAllCheckIns().collect { checkIns ->
@@ -62,10 +65,13 @@ class HistoryFragment : Fragment() {
                             allItems = groupedItems,
                             isTrustedOnly = shareTrustedOnly,
                             onEditClick = { checkIn ->
-                                val bundle = Bundle().apply {
-                                    putString("selectedDate", checkIn.date)
+                                try {
+                                    dateFormatter.parse(checkIn.date)?.let { date ->
+                                        showCheckInDialog(date.time)
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(requireContext(), "Error parsing date", Toast.LENGTH_SHORT).show()
                                 }
-                                findNavController().navigate(R.id.action_HistoryFragment_to_FirstFragment, bundle)
                             },
                             onDeleteClick = { checkIn ->
                                 showDeleteConfirmation(checkIn)
@@ -93,6 +99,11 @@ class HistoryFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showCheckInDialog(dateMillis: Long) {
+        val dialog = CheckInDialogFragment.newInstance(dateMillis)
+        dialog.show(childFragmentManager, "CheckInDialog")
     }
 
     private fun groupCheckIns(checkIns: List<CheckIn>): List<HistoryListItem> {
@@ -181,6 +192,7 @@ class HistoryFragment : Fragment() {
             Faster Scale Check-in
             Date: ${checkIn.date}
             Level: ${checkIn.scaleOption}
+            Call Made: ${if (checkIn.callMade) "Yes" else "No"}
             Notes: ${checkIn.description}
         """.trimIndent()
     }
@@ -190,6 +202,7 @@ class HistoryFragment : Fragment() {
         checkIns.forEach { checkIn ->
             report.append("Date: ${checkIn.date}\n")
             report.append("Level: ${checkIn.scaleOption}\n")
+            report.append("Call Made: ${if (checkIn.callMade) "Yes" else "No"}\n")
             if (checkIn.description.isNotBlank()) {
                 report.append("Notes: ${checkIn.description}\n")
             }

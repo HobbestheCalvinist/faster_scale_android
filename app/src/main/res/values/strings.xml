@@ -202,4 +202,13 @@
     <string name="settings_share_trusted">Share only with trusted contacts</string>
     <string name="settings_start_day">Start Day of Week</string>
     <string name="content_description_expand_contacts">Expand or collapse contacts section</string>
+
+    <string name="label_call_made">Call made today (%1$s)</string>
+    <string name="action_check_in">Check In</string>
+    <string name="check_in_title_format">Check-in: %1$s</string>
+    <string name="label_call_made_simple">📞 Call Made</string>
+    <string name="scheduled_call_details_format">Scheduled: %1$s at %2$s</string>
+    <string name="scheduled_contact_format">Contact: %1$s</string>
+    <string name="scheduled_phone_format">Phone: %1$s</string>
+    <string name="call_schedule_combined_format">%1$s - %2$s - %3$s</string>
 </resources>
