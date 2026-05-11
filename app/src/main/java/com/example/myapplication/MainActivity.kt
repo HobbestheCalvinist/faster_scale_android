@@ -2,17 +2,13 @@ package com.example.myapplication
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
-import androidx.navigation.ui.NavigationUI
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import com.example.myapplication.databinding.ActivityMainBinding
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
@@ -27,27 +23,16 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        // Fix: Use supportFragmentManager to find NavHostFragment when using FragmentContainerView
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
         
-        appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.FirstFragment, R.id.HistoryFragment, R.id.CallScheduleFragment, R.id.CommitmentFragment)
-        )
+        // Only MainTabsFragment is a top-level destination now
+        appBarConfiguration = AppBarConfiguration(setOf(R.id.MainTabsFragment))
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        // Using findViewById to safely access the bottom navigation inside the included layout
-        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        navView.setupWithNavController(navController)
-        
-        // Ensure Settings/About is closed when selecting any bottom nav item
-        navView.setOnItemSelectedListener { item ->
-            val currentId = navController.currentDestination?.id
-            if (currentId == R.id.SettingsFragment || currentId == R.id.AboutFragment) {
-                navController.popBackStack()
-            }
-            NavigationUI.onNavDestinationSelected(item, navController)
-        }
-
-        binding.fab.visibility = View.GONE
+        binding.fab.visibility = android.view.View.GONE
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -56,7 +41,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
+
         return when (item.itemId) {
             R.id.action_settings -> {
                 navController.navigate(R.id.SettingsFragment)
@@ -71,7 +59,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
+
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
     }

@@ -3,39 +3,19 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/FirstFragment">
+    app:startDestination="@id/MainTabsFragment">
 
     <fragment
-        android:id="@+id/FirstFragment"
-        android:name="com.example.myapplication.CheckinFragment"
-        android:label="@string/first_fragment_label"
-        tools:layout="@layout/fragment_first">
-
-        <argument
-            android:name="selectedDate"
-            app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
-
+        android:id="@+id/MainTabsFragment"
+        android:name="com.example.myapplication.MainTabsFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/fragment_main_tabs">
         <action
-            android:id="@+id/action_FirstFragment_to_HistoryFragment"
-            app:destination="@id/HistoryFragment" />
-        <action
-            android:id="@+id/action_global_SettingsFragment"
+            android:id="@+id/action_MainTabsFragment_to_SettingsFragment"
             app:destination="@id/SettingsFragment" />
         <action
-            android:id="@+id/action_FirstFragment_to_CommitmentFragment"
-            app:destination="@id/CommitmentFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/HistoryFragment"
-        android:name="com.example.myapplication.HistoryFragment"
-        android:label="@string/history_fragment_label"
-        tools:layout="@layout/fragment_history">
-        <action
-            android:id="@+id/action_HistoryFragment_to_FirstFragment"
-            app:destination="@id/FirstFragment" />
+            android:id="@+id/action_MainTabsFragment_to_AboutFragment"
+            app:destination="@id/AboutFragment" />
     </fragment>
 
     <fragment
@@ -50,15 +30,25 @@
         android:label="About"
         tools:layout="@layout/fragment_about" />
 
+    <!-- These remain for deep linking or backward compatibility if needed, but are primarily hosted in ViewPager -->
+    <fragment
+        android:id="@+id/FirstFragment"
+        android:name="com.example.myapplication.CheckinFragment"
+        android:label="@string/first_fragment_label" />
+
+    <fragment
+        android:id="@+id/HistoryFragment"
+        android:name="com.example.myapplication.HistoryFragment"
+        android:label="@string/history_fragment_label" />
+
     <fragment
         android:id="@+id/CallScheduleFragment"
         android:name="com.example.myapplication.CallScheduleFragment"
-        android:label="@string/call_schedule_fragment_label"
-        tools:layout="@layout/fragment_call_schedule" />
+        android:label="@string/call_schedule_fragment_label" />
 
     <fragment
         android:id="@+id/CommitmentFragment"
         android:name="com.example.myapplication.CommitmentFragment"
-        android:label="Commitment to Change"
-        tools:layout="@layout/fragment_commitment" />
+        android:label="Commitment to Change" />
+
 </navigation>
