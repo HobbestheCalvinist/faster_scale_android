@@ -27,7 +27,13 @@
     <style name="Theme.MyApplication.Dialog" parent="Theme.Material3.DayNight.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
-        <item name="colorPrimary">?attr/colorPrimary</item>
+
+        <!-- Explicitly define colors used in dialog layouts -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorOnPrimary">@color/white</item>
         <item name="colorSurface">@color/calendar_background</item>
+        <item name="colorOnSurface">#1C1B1F</item>
+        <item name="colorSurfaceVariant">#E7E0EC</item>
+        <item name="colorOnSurfaceVariant">#49454F</item>
     </style>
 </resources>
