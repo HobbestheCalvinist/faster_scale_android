@@ -47,29 +47,57 @@ class CallScheduleFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             db.callScheduleDao().getAllSchedules().collect { schedules ->
-                // Sort for UI consistency as previously implemented
+                val today = Calendar.getInstance().get(Calendar.DAY_OF_WEEK)
+                
                 val sortedSchedules = schedules.sortedWith(compareBy<CallSchedule> {
-                    when (it.dayOfWeek) {
-                        "Monday" -> 1
-                        "Tuesday" -> 2
-                        "Wednesday" -> 3
-                        "Thursday" -> 4
-                        "Friday" -> 5
-                        "Saturday" -> 6
-                        "Sunday" -> 7
-                        else -> 8
-                    }
+                    val dayInt = getDayInt(it.dayOfWeek)
+                    // Calculate days until this call (0 = today, 1 = tomorrow, etc.)
+                    (dayInt - today + 7) % 7
                 }.thenBy {
-                    val isPm = it.time.endsWith("PM")
-                    val parts = it.time.split(":", " ")
-                    var hour = parts[0].toInt()
-                    if (isPm && hour != 12) hour += 12
-                    if (!isPm && hour == 12) hour = 0
-                    val minute = parts[1].toInt()
-                    hour * 60 + minute
+                    val timeStr = it.time.uppercase()
+                    val isPm = timeStr.endsWith("PM")
+                    val timePart = timeStr.replace("AM", "").replace("PM", "").trim()
+                    val parts = timePart.split(":")
+                    if (parts.size >= 2) {
+                        var hour = parts[0].toIntOrNull() ?: 0
+                        val minute = parts[1].toIntOrNull() ?: 0
+                        if (isPm && hour != 12) hour += 12
+                        if (!isPm && hour == 12) hour = 0
+                        hour * 60 + minute
+                    } else {
+                        0
+                    }
                 })
-                adapter.submitList(sortedSchedules)
+
+                val listItems = mutableListOf<CallScheduleListItem>()
+                val todaySchedules = sortedSchedules.filter { getDayInt(it.dayOfWeek) == today }
+                val upcomingSchedules = sortedSchedules.filter { getDayInt(it.dayOfWeek) != today }
+
+                if (todaySchedules.isNotEmpty()) {
+                    listItems.add(CallScheduleListItem.Header("Today"))
+                    listItems.addAll(todaySchedules.map { CallScheduleListItem.Item(it) })
+                }
+
+                if (upcomingSchedules.isNotEmpty()) {
+                    listItems.add(CallScheduleListItem.Header("Upcoming"))
+                    listItems.addAll(upcomingSchedules.map { CallScheduleListItem.Item(it) })
+                }
+
+                adapter.submitList(listItems)
             }
+        }
+    }
+
+    private fun getDayInt(day: String): Int {
+        return when (day.trim()) {
+            "Sunday" -> Calendar.SUNDAY
+            "Monday" -> Calendar.MONDAY
+            "Tuesday" -> Calendar.TUESDAY
+            "Wednesday" -> Calendar.WEDNESDAY
+            "Thursday" -> Calendar.THURSDAY
+            "Friday" -> Calendar.FRIDAY
+            "Saturday" -> Calendar.SATURDAY
+            else -> Calendar.SUNDAY
         }
     }
 
