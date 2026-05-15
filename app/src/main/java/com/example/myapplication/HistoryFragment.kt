@@ -14,11 +14,12 @@ import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 /**
  * A simple [Fragment] subclass as the third destination in the navigation.
@@ -29,6 +30,9 @@ class HistoryFragment : Fragment() {
     private val binding get() = _binding!!
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var db: AppDatabase
+    private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
+    private val monthYearFormatter = SimpleDateFormat("MMMM yyyy", Locale.US)
+    private var historyAdapter: HistoryAdapter? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -46,33 +50,120 @@ class HistoryFragment : Fragment() {
 
         binding.recyclerviewHistory.layoutManager = LinearLayoutManager(context)
 
+        binding.buttonHistoryCheckIn.setOnClickListener {
+            showCheckInDialog(System.currentTimeMillis())
+        }
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 db.checkInDao().getAllCheckIns().collect { checkIns ->
                     val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
-                    binding.recyclerviewHistory.adapter = HistoryAdapter(
-                        checkIns = checkIns,
-                        isTrustedOnly = shareTrustedOnly,
-                        onEditClick = { checkIn ->
-                            val bundle = Bundle().apply {
-                                putString("selectedDate", checkIn.date)
+                    val groupedItems = groupCheckIns(checkIns)
+                    
+                    if (historyAdapter == null) {
+                        historyAdapter = HistoryAdapter(
+                            allItems = groupedItems,
+                            isTrustedOnly = shareTrustedOnly,
+                            onEditClick = { checkIn ->
+                                try {
+                                    dateFormatter.parse(checkIn.date)?.let { date ->
+                                        showCheckInDialog(date.time)
+                                    }
+                                } catch (e: Exception) {
+                                    Toast.makeText(requireContext(), "Error parsing date", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            onDeleteClick = { checkIn ->
+                                showDeleteConfirmation(checkIn)
+                            },
+                            onShareClick = { checkIn ->
+                                handleShareAction(checkIn)
                             }
-                            findNavController().navigate(R.id.action_HistoryFragment_to_FirstFragment, bundle)
-                        },
-                        onDeleteClick = { checkIn ->
-                            showDeleteConfirmation(checkIn)
-                        },
-                        onShareClick = { checkIn ->
-                            handleShareAction(checkIn)
-                        }
-                    )
+                        )
+                        
+                        // Collapse all groups except "This Week" by default
+                        val olderGroups = groupedItems
+                            .filterIsInstance<HistoryListItem.Header>()
+                            .map { it.title }
+                            .filter { it != "This Week" }
+                        historyAdapter?.collapseGroups(olderGroups)
+                        
+                        binding.recyclerviewHistory.adapter = historyAdapter
+                    } else {
+                        historyAdapter?.updateData(groupedItems)
+                    }
 
                     binding.buttonShareAll.setOnClickListener {
-                        handleShareAllAction(checkIns)
+                        handleShareWeekAction(checkIns)
                     }
                 }
             }
         }
+    }
+
+    private fun showCheckInDialog(dateMillis: Long) {
+        val dialog = CheckInDialogFragment.newInstance(dateMillis)
+        dialog.show(childFragmentManager, "CheckInDialog")
+    }
+
+    private fun groupCheckIns(checkIns: List<CheckIn>): List<HistoryListItem> {
+        if (checkIns.isEmpty()) return emptyList()
+
+        val sortedCheckIns = checkIns.sortedByDescending { 
+            try { dateFormatter.parse(it.date) } catch (e: Exception) { Date(0) }
+        }
+
+        val result = mutableListOf<HistoryListItem>()
+        val startOfThisWeek = getStartOfThisWeek()
+
+        val thisWeek = mutableListOf<CheckIn>()
+        val olderGroups = mutableMapOf<String, MutableList<CheckIn>>()
+
+        sortedCheckIns.forEach { checkIn ->
+            val date = try { dateFormatter.parse(checkIn.date) } catch (e: Exception) { null }
+            if (date != null) {
+                if (!date.before(startOfThisWeek)) {
+                    thisWeek.add(checkIn)
+                } else {
+                    val key = monthYearFormatter.format(date)
+                    olderGroups.getOrPut(key) { mutableListOf() }.add(checkIn)
+                }
+            }
+        }
+
+        if (thisWeek.isNotEmpty()) {
+            result.add(HistoryListItem.Header("This Week"))
+            thisWeek.forEach { result.add(HistoryListItem.Entry(it, "This Week")) }
+        }
+
+        val processedMonths = mutableSetOf<String>()
+        sortedCheckIns.forEach { checkIn ->
+            val date = try { dateFormatter.parse(checkIn.date) } catch (e: Exception) { null }
+            if (date != null && date.before(startOfThisWeek)) {
+                val key = monthYearFormatter.format(date)
+                if (!processedMonths.contains(key)) {
+                    result.add(HistoryListItem.Header(key))
+                    olderGroups[key]?.forEach { result.add(HistoryListItem.Entry(it, key)) }
+                    processedMonths.add(key)
+                }
+            }
+        }
+
+        return result
+    }
+
+    private fun getStartOfThisWeek(): Date {
+        val startDayOfWeek = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
+        val cal = Calendar.getInstance()
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        cal.set(Calendar.SECOND, 0)
+        cal.set(Calendar.MILLISECOND, 0)
+        
+        while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
+            cal.add(Calendar.DAY_OF_YEAR, -1)
+        }
+        return cal.time
     }
 
     private fun handleShareAction(checkIn: CheckIn) {
@@ -84,14 +175,26 @@ class HistoryFragment : Fragment() {
         }
     }
 
-    private fun handleShareAllAction(checkIns: List<CheckIn>) {
-        if (checkIns.isEmpty()) return
+    private fun handleShareWeekAction(checkIns: List<CheckIn>) {
+        val startOfThisWeek = getStartOfThisWeek()
+        val thisWeekCheckIns = checkIns.filter {
+            val date = try { dateFormatter.parse(it.date) } catch (e: Exception) { null }
+            date != null && !date.before(startOfThisWeek)
+        }.sortedBy { 
+            try { dateFormatter.parse(it.date) } catch (e: Exception) { Date(0) }
+        }
+
+        if (thisWeekCheckIns.isEmpty()) {
+            Toast.makeText(requireContext(), "No check-ins for this week to share.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val shareTrustedOnly = sharedPreferences.getBoolean("share_trusted_only", false)
-        val report = getHistoryReport(checkIns)
+        val report = getHistoryReport(thisWeekCheckIns, "This Week's Report")
         if (shareTrustedOnly) {
             shareWithTrustedContacts(report)
         } else {
-            shareGeneric(report, "Share History Report")
+            shareGeneric(report, "Share Weekly Report")
         }
     }
 
@@ -100,15 +203,17 @@ class HistoryFragment : Fragment() {
             Faster Scale Check-in
             Date: ${checkIn.date}
             Level: ${checkIn.scaleOption}
+            Call Made: ${if (checkIn.callMade) "Yes" else "No"}
             Notes: ${checkIn.description}
         """.trimIndent()
     }
 
-    private fun getHistoryReport(checkIns: List<CheckIn>): String {
-        val report = StringBuilder("Faster Scale Recovery - Full History\n\n")
+    private fun getHistoryReport(checkIns: List<CheckIn>, title: String): String {
+        val report = StringBuilder("Faster Scale Recovery - $title\n\n")
         checkIns.forEach { checkIn ->
             report.append("Date: ${checkIn.date}\n")
             report.append("Level: ${checkIn.scaleOption}\n")
+            report.append("Call Made: ${if (checkIn.callMade) "Yes" else "No"}\n")
             if (checkIn.description.isNotBlank()) {
                 report.append("Notes: ${checkIn.description}\n")
             }
@@ -178,5 +283,6 @@ class HistoryFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        historyAdapter = null
     }
 }

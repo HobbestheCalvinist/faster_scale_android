@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Calendar Theme Colors (Dark) -->
+    <color name="calendar_background">#121212</color>
+    <color name="calendar_header_text">#E6E1E5</color>
+    <color name="calendar_day_text">#E6E1E5</color>
+    <color name="calendar_abbreviation_text">#CAC4D0</color>
+    <color name="calendar_selection_circle">#D0BCFF</color>
+    <color name="calendar_selection_text">#381E72</color>
+    <color name="calendar_today_text">#D0BCFF</color>
+
+    <color name="calendar_other_month_text">#888888</color>
+    <color name="calendar_disabled_text">#666666</color>
+
+    <!-- FASTER Scale Colors (Dark Mode optimized) -->
+    <color name="color_restoration">#43A047</color> <!-- Green -->
+    <color name="color_forgetting">#C0CA33</color>   <!-- Lime -->
+    <color name="color_anxiety">#FDD835</color>      <!-- Yellow -->
+    <color name="color_speeding">#FB8C00</color>     <!-- Orange -->
+    <color name="color_ticked_off">#E53935</color>   <!-- Red -->
+    <color name="color_exhausted">#BF360C</color>    <!-- Dark Orange -->
+    <color name="color_relapse">#757575</color>      <!-- Grey/Black -->
+</resources>

@@ -2,16 +2,13 @@ package com.example.myapplication
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.findNavController
+import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import com.example.myapplication.databinding.ActivityMainBinding
-import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
@@ -26,18 +23,16 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
 
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        // Fix: Use supportFragmentManager to find NavHostFragment when using FragmentContainerView
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
         
-        // Updated to include CallScheduleFragment as a top-level destination
-        appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.FirstFragment, R.id.HistoryFragment, R.id.CallScheduleFragment)
-        )
+        // Only MainTabsFragment is a top-level destination now
+        appBarConfiguration = AppBarConfiguration(setOf(R.id.MainTabsFragment))
         setupActionBarWithNavController(navController, appBarConfiguration)
 
-        val navView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        navView.setupWithNavController(navController)
-
-        binding.fab.visibility = View.GONE
+        binding.fab.visibility = android.view.View.GONE
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -46,9 +41,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
+
         return when (item.itemId) {
             R.id.action_settings -> {
-                findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.SettingsFragment)
+                navController.navigate(R.id.SettingsFragment)
+                true
+            }
+            R.id.AboutFragment -> {
+                navController.navigate(R.id.AboutFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -56,7 +59,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onSupportNavigateUp(): Boolean {
-        val navController = findNavController(R.id.nav_host_fragment_content_main)
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+        val navController = navHostFragment.navController
+
         return navController.navigateUp(appBarConfiguration)
                 || super.onSupportNavigateUp()
     }

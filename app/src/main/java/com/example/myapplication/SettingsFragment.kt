@@ -15,6 +15,7 @@ import android.provider.ContactsContract
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -23,9 +24,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.myapplication.databinding.FragmentSettingsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.text.SimpleDateFormat
 import java.util.*
 
 class SettingsFragment : Fragment() {
@@ -35,6 +41,10 @@ class SettingsFragment : Fragment() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var db: AppDatabase
     private lateinit var contactAdapter: ContactAdapter
+
+    private val daysOfWeek = listOf(
+        "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+    )
 
     private val contactPickerLauncher = registerForActivityResult(ActivityResultContracts.PickContact()) { uri: Uri? ->
         uri?.let { processSelectedContact(it) }
@@ -46,6 +56,14 @@ class SettingsFragment : Fragment() {
         } else {
             Toast.makeText(requireContext(), "Permission denied to read contacts", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private val createBackupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri: Uri? ->
+        uri?.let { performBackup(it) }
+    }
+
+    private val restoreBackupLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+        uri?.let { performRestore(it) }
     }
 
     override fun onCreateView(
@@ -61,12 +79,15 @@ class SettingsFragment : Fragment() {
         sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
         db = AppDatabase.getDatabase(requireContext())
 
-        setupReminderSettings()
+        setupNotificationSettings()
+        setupStartDaySettings()
         setupShareSettings()
         setupContactSettings()
+        setupBackupRestore()
     }
 
-    private fun setupReminderSettings() {
+    private fun setupNotificationSettings() {
+        // Daily Check-in Reminder
         val isReminderEnabled = sharedPreferences.getBoolean("reminder_enabled", false)
         val hour = sharedPreferences.getInt("reminder_hour", 8)
         val minute = sharedPreferences.getInt("reminder_minute", 0)
@@ -95,17 +116,73 @@ class SettingsFragment : Fragment() {
                 }
             }, hour, minute, false).show()
         }
+
+        // Phone Call Reminder
+        val isPhoneCallReminderEnabled = sharedPreferences.getBoolean("phone_call_reminder_enabled", false)
+        binding.switchPhoneCallReminder.isChecked = isPhoneCallReminderEnabled
+        binding.switchPhoneCallReminder.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("phone_call_reminder_enabled", isChecked).apply()
+            // Logic for scheduling phone call reminders would go here
+            if (isChecked) {
+                Toast.makeText(requireContext(), "Phone call reminders enabled", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Test Notifications
+        binding.buttonTestNotification.setOnClickListener {
+            val intent = Intent(requireContext(), ReminderReceiver::class.java)
+            requireContext().sendBroadcast(intent)
+            Toast.makeText(requireContext(), "Test notification sent", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupStartDaySettings() {
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, daysOfWeek)
+        binding.autocompletetextviewStartDay.setAdapter(adapter)
+
+        val currentStartDay = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
+        val currentDayName = when (currentStartDay) {
+            Calendar.SUNDAY -> "Sunday"
+            Calendar.MONDAY -> "Monday"
+            Calendar.TUESDAY -> "Tuesday"
+            Calendar.WEDNESDAY -> "Wednesday"
+            Calendar.THURSDAY -> "Thursday"
+            Calendar.FRIDAY -> "Friday"
+            Calendar.SATURDAY -> "Saturday"
+            else -> "Sunday"
+        }
+        binding.autocompletetextviewStartDay.setText(currentDayName, false)
+
+        binding.autocompletetextviewStartDay.setOnItemClickListener { _, _, position, _ ->
+            val selectedDay = when (daysOfWeek[position]) {
+                "Sunday" -> Calendar.SUNDAY
+                "Monday" -> Calendar.MONDAY
+                "Tuesday" -> Calendar.TUESDAY
+                "Wednesday" -> Calendar.WEDNESDAY
+                "Thursday" -> Calendar.THURSDAY
+                "Friday" -> Calendar.FRIDAY
+                "Saturday" -> Calendar.SATURDAY
+                else -> Calendar.SUNDAY
+            }
+            sharedPreferences.edit().putInt("start_day_of_week", selectedDay).apply()
+        }
     }
 
     private fun setupShareSettings() {
         val isShareTrustedEnabled = sharedPreferences.getBoolean("share_trusted_only", false)
         binding.switchShareTrusted.isChecked = isShareTrustedEnabled
-        binding.switchShareTrusted.setOnCheckedChangeListener { _, isChecked ->
-            sharedPreferences.edit().putBoolean("share_trusted_only", isChecked).apply()
-        }
     }
 
     private fun setupContactSettings() {
+        // Collapsible Section
+        binding.layoutContactsHeader.setOnClickListener {
+            val isVisible = binding.layoutContactsContent.visibility == View.VISIBLE
+            binding.layoutContactsContent.visibility = if (isVisible) View.GONE else View.VISIBLE
+            binding.imageviewContactsExpand.setImageResource(
+                if (isVisible) android.R.drawable.arrow_down_float else android.R.drawable.arrow_up_float
+            )
+        }
+
         contactAdapter = ContactAdapter { contact ->
             showDeleteContactConfirmation(contact)
         }
@@ -122,6 +199,82 @@ class SettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             db.contactDao().getAllContacts().collect { contacts ->
                 contactAdapter.submitList(contacts)
+            }
+        }
+    }
+
+    private fun setupBackupRestore() {
+        binding.buttonBackup.setOnClickListener {
+            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+            createBackupLauncher.launch("faster_scale_backup_$timeStamp.json")
+        }
+
+        binding.buttonRestore.setOnClickListener {
+            restoreBackupLauncher.launch(arrayOf("application/json"))
+        }
+    }
+
+    private fun performBackup(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val checkIns = db.checkInDao().getAllCheckIns().first()
+                val contacts = db.contactDao().getAllContacts().first()
+                val schedules = db.callScheduleDao().getAllSchedules().first()
+                val commitments = db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()
+                val prefs = sharedPreferences.all
+
+                val backupData = BackupData(checkIns, contacts, schedules, commitments, prefs)
+                val json = Gson().toJson(backupData)
+
+                withContext(Dispatchers.IO) {
+                    requireContext().contentResolver.openOutputStream(uri)?.use { outputStream ->
+                        outputStream.write(json.toByteArray())
+                    }
+                }
+                Toast.makeText(requireContext(), "Backup created successfully!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Backup failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun performRestore(uri: Uri) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val json = withContext(Dispatchers.IO) {
+                    requireContext().contentResolver.openInputStream(uri)?.use { inputStream ->
+                        BufferedReader(InputStreamReader(inputStream)).readText()
+                    } ?: ""
+                }
+
+                val backupData = Gson().fromJson(json, BackupData::class.java)
+
+                withContext(Dispatchers.IO) {
+                    // Restore Database
+                    backupData.checkIns.forEach { db.checkInDao().insertCheckIn(it) }
+                    backupData.contacts.forEach { db.contactDao().insertContact(it) }
+                    backupData.callSchedules.forEach { db.callScheduleDao().insertSchedule(it) }
+                    backupData.commitments.forEach { db.commitmentDao().insertCommitment(it) }
+
+                    // Restore Preferences
+                    val editor = sharedPreferences.edit()
+                    backupData.preferences.forEach { (key, value) ->
+                        when (value) {
+                            is Boolean -> editor.putBoolean(key, value)
+                            is Int -> editor.putInt(key, value)
+                            is Long -> editor.putLong(key, value)
+                            is Float -> editor.putFloat(key, value)
+                            is String -> editor.putString(key, value)
+                        }
+                    }
+                    editor.apply()
+                }
+
+                Toast.makeText(requireContext(), "Restore completed! Please restart the app for all changes to take effect.", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                Toast.makeText(requireContext(), "Restore failed: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

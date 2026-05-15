@@ -12,5 +12,6 @@ data class CheckIn(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val date: String,
     val scaleOption: String,
-    val description: String = ""
+    val description: String = "",
+    val callMade: Boolean = false
 )
