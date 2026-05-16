@@ -122,7 +122,6 @@ class SettingsFragment : Fragment() {
         binding.switchPhoneCallReminder.isChecked = isPhoneCallReminderEnabled
         binding.switchPhoneCallReminder.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("phone_call_reminder_enabled", isChecked).apply()
-            // Logic for scheduling phone call reminders would go here
             if (isChecked) {
                 Toast.makeText(requireContext(), "Phone call reminders enabled", Toast.LENGTH_SHORT).show()
             }
@@ -133,6 +132,16 @@ class SettingsFragment : Fragment() {
             val intent = Intent(requireContext(), ReminderReceiver::class.java)
             requireContext().sendBroadcast(intent)
             Toast.makeText(requireContext(), "Test notification sent", Toast.LENGTH_SHORT).show()
+        }
+
+        binding.buttonTestCallNotification.setOnClickListener {
+            val intent = Intent(requireContext(), CallAlarmReceiver::class.java).apply {
+                putExtra("contactName", "Test Contact")
+                putExtra("contactPhone", "555-0199")
+                putExtra("scheduleId", 999)
+            }
+            requireContext().sendBroadcast(intent)
+            Toast.makeText(requireContext(), "Test call alert sent", Toast.LENGTH_SHORT).show()
         }
     }
 

@@ -24,26 +24,31 @@ class ReminderReceiver : BroadcastReceiver() {
             val channel = NotificationChannel(
                 channelId,
                 "Daily Check-in Reminder",
-                NotificationManager.IMPORTANCE_DEFAULT
+                NotificationManager.IMPORTANCE_HIGH
             )
             manager.createNotificationChannel(channel)
         }
 
-        val activityIntent = Intent(context, MainActivity::class.java).apply {
+        // Intent to open the app and trigger the Check-in dialog
+        val checkInIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(MainTabsFragment.EXTRA_OPEN_TAB, 0) // Check-in tab
+            putExtra(MainTabsFragment.EXTRA_SHOW_CHECKIN, true)
         }
+        
         val pendingIntent = PendingIntent.getActivity(
-            context, 0, activityIntent,
-            PendingIntent.FLAG_IMMUTABLE
+            context, 1, checkInIntent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Faster Scale Recovery")
             .setContentText("It's time for your daily check-in!")
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+            .addAction(android.R.drawable.ic_menu_edit, "Check In Now", pendingIntent)
 
         manager.notify(notificationId, builder.build())
     }

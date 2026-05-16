@@ -1,6 +1,7 @@
 package com.example.myapplication
 
 import android.app.TimePickerDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
+import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -122,40 +124,7 @@ class CallScheduleFragment : Fragment() {
         val dayAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, days)
         (dialogBinding.exposedDropdownDay.editText as? AutoCompleteTextView)?.setAdapter(dayAdapter)
 
-        // Setup Contact Spinner
-        viewLifecycleOwner.lifecycleScope.launch {
-            val contacts = db.contactDao().getAllContacts().first()
-            if (contacts.isEmpty()) {
-                Toast.makeText(requireContext(), R.string.no_contacts_available, Toast.LENGTH_LONG).show()
-                return@launch
-            }
-
-            val contactNames = contacts.map { it.name }
-            val contactAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, contactNames)
-            (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setAdapter(contactAdapter)
-
-            // Pre-fill if editing
-            schedule?.let { s ->
-                (dialogBinding.exposedDropdownDay.editText as? AutoCompleteTextView)?.setText(s.dayOfWeek, false)
-                dialogBinding.textviewTimeValue.text = s.time
-                (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setText(s.contactName, false)
-            }
-        }
-
-        dialogBinding.buttonSetTime.setOnClickListener {
-            val calendar = Calendar.getInstance()
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            val minute = calendar.get(Calendar.MINUTE)
-
-            TimePickerDialog(requireContext(), { _, h, m ->
-                val amPm = if (h < 12) "AM" else "PM"
-                val hDisplay = if (h % 12 == 0) 12 else h % 12
-                val timeString = String.format(Locale.getDefault(), "%02d:%02d %s", hDisplay, m, amPm)
-                dialogBinding.textviewTimeValue.text = timeString
-            }, hour, minute, false).show()
-        }
-
-        MaterialAlertDialogBuilder(requireContext())
+        val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(if (isEdit) R.string.title_edit_call_schedule else R.string.title_add_call_schedule)
             .setView(dialogBinding.root)
             .setPositiveButton(R.string.action_save) { _, _ ->
@@ -191,6 +160,60 @@ class CallScheduleFragment : Fragment() {
             }
             .setNegativeButton(R.string.action_cancel, null)
             .show()
+
+        val saveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE)
+        saveButton.isEnabled = false
+
+        fun validate() {
+            val day = dialogBinding.exposedDropdownDay.editText?.text.toString()
+            val time = dialogBinding.textviewTimeValue.text.toString()
+            val contactName = dialogBinding.exposedDropdownContact.editText?.text.toString()
+            val notSet = getString(R.string.time_not_set)
+            
+            saveButton.isEnabled = day.isNotBlank() && 
+                                   time.isNotBlank() && 
+                                   time != notSet && 
+                                   contactName.isNotBlank()
+        }
+
+        dialogBinding.exposedDropdownDay.editText?.addTextChangedListener { validate() }
+        dialogBinding.exposedDropdownContact.editText?.addTextChangedListener { validate() }
+
+        // Setup Contact Spinner
+        viewLifecycleOwner.lifecycleScope.launch {
+            val contacts = db.contactDao().getAllContacts().first()
+            if (contacts.isEmpty()) {
+                Toast.makeText(requireContext(), R.string.no_contacts_available, Toast.LENGTH_LONG).show()
+                dialog.dismiss()
+                return@launch
+            }
+
+            val contactNames = contacts.map { it.name }
+            val contactAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, contactNames)
+            (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setAdapter(contactAdapter)
+
+            // Pre-fill if editing
+            schedule?.let { s ->
+                (dialogBinding.exposedDropdownDay.editText as? AutoCompleteTextView)?.setText(s.dayOfWeek, false)
+                dialogBinding.textviewTimeValue.text = s.time
+                (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setText(s.contactName, false)
+            }
+            validate()
+        }
+
+        dialogBinding.buttonSetTime.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+
+            TimePickerDialog(requireContext(), { _, h, m ->
+                val amPm = if (h < 12) "AM" else "PM"
+                val hDisplay = if (h % 12 == 0) 12 else h % 12
+                val timeString = String.format(Locale.getDefault(), "%02d:%02d %s", hDisplay, m, amPm)
+                dialogBinding.textviewTimeValue.text = timeString
+                validate()
+            }, hour, minute, false).show()
+        }
     }
 
     private fun showDeleteConfirmation(schedule: CallSchedule) {

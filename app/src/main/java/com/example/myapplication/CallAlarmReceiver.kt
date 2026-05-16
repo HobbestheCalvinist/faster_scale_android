@@ -17,10 +17,6 @@ class CallAlarmReceiver : BroadcastReceiver() {
         val scheduleId = intent.getIntOf("scheduleId", 0)
 
         showNotification(context, contactName, contactPhone, scheduleId)
-        
-        // Reschedule for next week
-        // Note: For production apps, you might want to call the AlarmHelper here
-        // But we'll handle initial scheduling in the Fragment.
     }
 
     private fun showNotification(context: Context, contactName: String, contactPhone: String, scheduleId: Int) {
@@ -38,13 +34,14 @@ class CallAlarmReceiver : BroadcastReceiver() {
             manager.createNotificationChannel(channel)
         }
 
-        // Intent to open the app
+        // Intent to open the app directly to the Call Schedule tab
         val activityIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            putExtra(MainTabsFragment.EXTRA_OPEN_TAB, 2) // Index for Call Schedule tab
         }
         val pendingIntent = PendingIntent.getActivity(
             context, scheduleId, activityIntent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         // Intent to make the call directly
@@ -59,11 +56,12 @@ class CallAlarmReceiver : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_call)
             .setContentTitle("Upcoming Scheduled Call")
-            .setContentText("Your call with $contactName is in 15 minutes.")
+            .setContentText("Your call with $contactName is starting soon.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .addAction(android.R.drawable.ic_menu_call, "Call Now", callPendingIntent)
+            .addAction(android.R.drawable.ic_menu_agenda, "View Schedule", pendingIntent)
 
         manager.notify(notificationId, builder.build())
     }

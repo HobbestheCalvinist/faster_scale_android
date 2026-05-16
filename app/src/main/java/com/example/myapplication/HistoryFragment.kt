@@ -200,12 +200,13 @@ class HistoryFragment : Fragment() {
 
     private fun getShareText(checkIn: CheckIn): String {
         return """
-            Faster Scale Check-in
-            Date: ${checkIn.date}
-            Level: ${checkIn.scaleOption}
-            Call Made: ${if (checkIn.callMade) "Yes" else "No"}
-            Notes: ${checkIn.description}
-        """.trimIndent()
+            |Faster Scale Check-in
+            |Date: ${checkIn.date}
+            |Level: ${checkIn.scaleOption}
+            |Call Made: ${if (checkIn.callMade) "Yes" else "No"}
+            |Notes: 
+            |${checkIn.description}
+        """.trimMargin()
     }
 
     private fun getHistoryReport(checkIns: List<CheckIn>, title: String): String {
