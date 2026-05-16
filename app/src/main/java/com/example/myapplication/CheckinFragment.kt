@@ -107,12 +107,13 @@ class CheckinFragment : Fragment() {
 
         val today = Calendar.getInstance().apply { clearTime() }
         val dayCheckInMap = currentCheckIns.associateBy { it.date.trim() }
-        val callDaysOfWeek = currentSchedules.map { it.dayOfWeek.trim().lowercase() }.toSet()
+        val scheduleMap = currentSchedules.associateBy { it.dayOfWeek.trim().lowercase() }
 
         for (i in 0 until 28) {
             val dateStr = dateFormatter.format(cal.time)
             val dayName = SimpleDateFormat("EEEE", Locale.US).format(cal.time).lowercase()
             val checkIn = dayCheckInMap[dateStr]
+            val schedule = scheduleMap[dayName]
             
             days.add(com.example.myapplication.CalendarDay(
                 dayOfMonth = cal.get(Calendar.DAY_OF_MONTH).toString(),
@@ -120,7 +121,8 @@ class CheckinFragment : Fragment() {
                 scaleOption = checkIn?.scaleOption,
                 isSelected = isSameDay(cal, selectedCalendar),
                 isToday = isSameDay(cal, today),
-                hasCall = callDaysOfWeek.contains(dayName)
+                hasCall = schedule != null,
+                isInbound = schedule?.isInbound ?: false
             ))
             cal.add(Calendar.DAY_OF_YEAR, 1)
         }
@@ -174,7 +176,27 @@ class CheckinFragment : Fragment() {
                 binding.textviewSummaryDescription.text = checkIn.description
                 binding.textviewSummaryDescription.visibility = if (checkIn.description.isEmpty()) View.GONE else View.VISIBLE
                 
-                binding.textviewSummaryCall.visibility = if (checkIn.callMade) View.VISIBLE else View.GONE
+                if (checkIn.callMade) {
+                    binding.textviewSummaryCall.visibility = View.VISIBLE
+                    val completedIds = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }
+                    if (completedIds.size > 1) {
+                        binding.textviewSummaryCall.text = getString(R.string.label_calls_made_count, completedIds.size)
+                    } else {
+                        binding.textviewSummaryCall.setText(R.string.label_call_made_simple)
+                    }
+                    
+                    val iconRes = if (checkIn.isInboundCall) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
+                    val icon = ContextCompat.getDrawable(requireContext(), iconRes)?.apply {
+                        val size = (binding.textviewSummaryCall.textSize * 1.1f).toInt()
+                        setBounds(0, 0, size, size)
+                        setTint(ContextCompat.getColor(requireContext(), R.color.purple_500))
+                    }
+                    binding.textviewSummaryCall.setCompoundDrawables(icon, null, null, null)
+                    binding.textviewSummaryCall.compoundDrawablePadding = 8
+                } else {
+                    binding.textviewSummaryCall.visibility = View.GONE
+                    binding.textviewSummaryCall.setCompoundDrawables(null, null, null, null)
+                }
             } else {
                 binding.cardSummary.visibility = View.GONE
             }

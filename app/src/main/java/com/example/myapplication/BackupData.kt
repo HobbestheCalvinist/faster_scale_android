@@ -1,9 +1,9 @@
 package com.example.myapplication
 
 data class BackupData(
-    val checkIns: List<CheckIn>,
-    val contacts: List<Contact>,
-    val callSchedules: List<CallSchedule>,
-    val commitments: List<Commitment>,
-    val preferences: Map<String, *>
+    val checkIns: List<CheckIn> = emptyList(),
+    val contacts: List<Contact> = emptyList(),
+    val callSchedules: List<CallSchedule> = emptyList(),
+    val commitments: List<Commitment> = emptyList(),
+    val preferences: Map<String, *> = emptyMap<String, Any>()
 )

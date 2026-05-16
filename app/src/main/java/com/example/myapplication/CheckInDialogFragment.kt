@@ -1,16 +1,19 @@
 package com.example.myapplication
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.databinding.DialogCheckInBinding
+import com.example.myapplication.databinding.ItemCheckInCallBinding
 import com.google.android.material.chip.Chip
+import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -26,6 +29,8 @@ class CheckInDialogFragment : DialogFragment() {
     private var selectedDate: Calendar = Calendar.getInstance()
 
     private var scaleOptionsList: List<ScaleOption> = emptyList()
+    private val callSwitches = mutableMapOf<Int, MaterialSwitch>()
+    private var existingCompletedIds: Set<String> = emptySet()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +68,6 @@ class CheckInDialogFragment : DialogFragment() {
         binding.textviewDialogTitle.text = getString(R.string.check_in_title_format, dateFormatter.format(selectedDate.time))
 
         setupDropdown()
-        checkScheduledCall()
         loadExistingCheckIn()
 
         binding.buttonSave.setOnClickListener {
@@ -120,7 +124,6 @@ class CheckInDialogFragment : DialogFragment() {
                 val chip = Chip(context).apply {
                     text = behavior
                     isCheckable = true
-                    // Set initial state based on description
                     isChecked = currentLines.contains(behavior.trim())
                     
                     setOnClickListener {
@@ -152,39 +155,56 @@ class CheckInDialogFragment : DialogFragment() {
         }
     }
 
-    private fun checkScheduledCall() {
+    private fun checkScheduledCalls() {
         val currentDb = db ?: return
         val dayOfWeek = SimpleDateFormat("EEEE", Locale.US).format(selectedDate.time)
-        val shortDate = SimpleDateFormat("MMM dd", Locale.US).format(selectedDate.time)
         
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val schedules = currentDb.callScheduleDao().getAllSchedules().firstOrNull() ?: emptyList()
-                val scheduleForToday = schedules.find { it.dayOfWeek.trim().equals(dayOfWeek, ignoreCase = true) }
+                val allSchedules = currentDb.callScheduleDao().getAllSchedules().firstOrNull() ?: emptyList()
+                val schedulesForToday = allSchedules.filter { it.dayOfWeek.trim().equals(dayOfWeek, ignoreCase = true) }
                 
                 _binding?.let { b ->
-                    if (scheduleForToday != null) {
-                        b.cardCallInfo.visibility = View.VISIBLE
-                        b.textviewScheduledCallDetails.text = getString(R.string.scheduled_call_details_format, shortDate, scheduleForToday.time)
-                        b.textviewScheduledContact.text = getString(R.string.scheduled_contact_format, scheduleForToday.contactName)
-                        b.textviewScheduledPhone.text = getString(R.string.scheduled_phone_format, scheduleForToday.contactPhone)
+                    b.layoutCallsList.removeAllViews()
+                    callSwitches.clear()
+
+                    if (schedulesForToday.isNotEmpty()) {
+                        b.textviewCallsHeader.visibility = View.VISIBLE
+                        b.cardCallsContainer.visibility = View.VISIBLE
                         
-                        b.buttonCallNow.setOnClickListener {
-                            try {
-                                val intent = Intent(Intent.ACTION_DIAL).apply {
-                                    data = Uri.parse("tel:${scheduleForToday.contactPhone}")
+                        schedulesForToday.forEach { schedule ->
+                            val itemBinding = ItemCheckInCallBinding.inflate(layoutInflater, b.layoutCallsList, true)
+                            
+                            val callType = if (schedule.isInbound) getString(R.string.call_type_inbound) else getString(R.string.call_type_outbound)
+                            val iconRes = if (schedule.isInbound) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
+                            
+                            itemBinding.textviewCallDetails.text = getString(R.string.call_schedule_combined_format, schedule.dayOfWeek, schedule.time, callType)
+                            itemBinding.textviewContactName.text = schedule.contactName
+                            itemBinding.imageviewCallIcon.setImageResource(iconRes)
+                            
+                            itemBinding.buttonCallNow.setOnClickListener {
+                                try {
+                                    val intent = Intent(Intent.ACTION_DIAL).apply {
+                                        data = "tel:${schedule.contactPhone}".toUri()
+                                    }
+                                    startActivity(intent)
+                                    // Auto-toggle checkmark when calling
+                                    itemBinding.switchCallMade.isChecked = true
+                                } catch (e: Exception) {
+                                    Toast.makeText(requireContext(), "Could not open dialer", Toast.LENGTH_SHORT).show()
                                 }
-                                startActivity(intent)
-                            } catch (e: Exception) {
-                                Toast.makeText(context, "Could not open dialer", Toast.LENGTH_SHORT).show()
                             }
+
+                            itemBinding.switchCallMade.isChecked = existingCompletedIds.contains(schedule.id.toString())
+                            callSwitches[schedule.id] = itemBinding.switchCallMade
                         }
                     } else {
-                        b.cardCallInfo.visibility = View.GONE
+                        b.textviewCallsHeader.visibility = View.GONE
+                        b.cardCallsContainer.visibility = View.GONE
                     }
                 }
             } catch (e: Exception) {
-                _binding?.cardCallInfo?.visibility = View.GONE
+                _binding?.cardCallsContainer?.visibility = View.GONE
             }
         }
     }
@@ -200,15 +220,15 @@ class CheckInDialogFragment : DialogFragment() {
                         val displayOption = scaleOptionsList.find { it.title == checkIn.scaleOption.trim() }
                         if (displayOption != null) {
                             b.autocompletetextviewScale.setText(displayOption.title, false)
-                            // Important: Update behaviors AFTER setting the description to ensure chips are correctly checked
                             b.edittextDescription.setText(checkIn.description)
                             updateBehaviorsSection(checkIn.scaleOption)
                         }
-                        b.switchCallMade.isChecked = checkIn.callMade
+                        existingCompletedIds = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }.toSet()
                     }
+                    checkScheduledCalls()
                 }
             } catch (e: Exception) {
-                // Silently fail or log
+                checkScheduledCalls()
             }
         }
     }
@@ -223,16 +243,38 @@ class CheckInDialogFragment : DialogFragment() {
 
         val scaleOption = scaleOptionsList.find { it.title == selectedText }?.title ?: selectedText
         val description = binding.edittextDescription.text.toString()
-        val callMade = if (binding.cardCallInfo.visibility == View.VISIBLE) binding.switchCallMade.isChecked else false
         val date = dateFormatter.format(selectedDate.time)
+
+        val completedIds = callSwitches.filter { it.value.isChecked }.keys
+        val callMade = completedIds.isNotEmpty()
+        val completedIdsString = completedIds.joinToString(",")
+
+        val firstCheckedId = completedIds.firstOrNull()
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val existingCheckIn = currentDb.checkInDao().getCheckInByDate(date.trim())
+                
+                val allSchedules = currentDb.callScheduleDao().getAllSchedules().firstOrNull() ?: emptyList()
+                val finalIsInbound = allSchedules.find { it.id == firstCheckedId }?.isInbound ?: false
+
                 val checkIn = if (existingCheckIn != null) {
-                    existingCheckIn.copy(scaleOption = scaleOption, description = description, callMade = callMade)
+                    existingCheckIn.copy(
+                        scaleOption = scaleOption, 
+                        description = description, 
+                        callMade = callMade,
+                        isInboundCall = finalIsInbound,
+                        completedScheduleIds = completedIdsString
+                    )
                 } else {
-                    CheckIn(date = date, scaleOption = scaleOption, description = description, callMade = callMade)
+                    CheckIn(
+                        date = date, 
+                        scaleOption = scaleOption, 
+                        description = description, 
+                        callMade = callMade,
+                        isInboundCall = finalIsInbound,
+                        completedScheduleIds = completedIdsString
+                    )
                 }
 
                 currentDb.checkInDao().insertCheckIn(checkIn)

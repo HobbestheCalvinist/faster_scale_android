@@ -97,7 +97,28 @@ class HistoryAdapter(
             }
             holder.binding.textviewHistoryScale.setTextColor(ContextCompat.getColor(context, colorRes))
             
-            holder.binding.textviewHistoryCall.visibility = if (checkIn.callMade) View.VISIBLE else View.GONE
+            if (checkIn.callMade) {
+                holder.binding.textviewHistoryCall.visibility = View.VISIBLE
+                val completedIds = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }
+                
+                if (completedIds.size > 1) {
+                    holder.binding.textviewHistoryCall.text = context.getString(R.string.label_calls_made_count, completedIds.size)
+                } else {
+                    holder.binding.textviewHistoryCall.setText(R.string.label_call_made_simple)
+                }
+                
+                val iconRes = if (checkIn.isInboundCall) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
+                val icon = ContextCompat.getDrawable(context, iconRes)?.apply {
+                    val size = (holder.binding.textviewHistoryCall.textSize * 1.1f).toInt()
+                    setBounds(0, 0, size, size)
+                    setTint(ContextCompat.getColor(context, R.color.purple_500))
+                }
+                holder.binding.textviewHistoryCall.setCompoundDrawables(icon, null, null, null)
+                holder.binding.textviewHistoryCall.compoundDrawablePadding = 8
+            } else {
+                holder.binding.textviewHistoryCall.visibility = View.GONE
+                holder.binding.textviewHistoryCall.setCompoundDrawables(null, null, null, null)
+            }
 
             val isExpanded = position == expandedEntryPosition
             if (checkIn.description.isNotEmpty() && isExpanded) {

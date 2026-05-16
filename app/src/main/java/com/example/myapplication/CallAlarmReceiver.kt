@@ -15,11 +15,12 @@ class CallAlarmReceiver : BroadcastReceiver() {
         val contactName = intent.getStringExtra("contactName") ?: "Someone"
         val contactPhone = intent.getStringExtra("contactPhone") ?: ""
         val scheduleId = intent.getIntOf("scheduleId", 0)
+        val isInbound = intent.getBooleanExtra("isInbound", false)
 
-        showNotification(context, contactName, contactPhone, scheduleId)
+        showNotification(context, contactName, contactPhone, scheduleId, isInbound)
     }
 
-    private fun showNotification(context: Context, contactName: String, contactPhone: String, scheduleId: Int) {
+    private fun showNotification(context: Context, contactName: String, contactPhone: String, scheduleId: Int, isInbound: Boolean) {
         val channelId = "call_schedule_channel"
         val notificationId = 2000 + scheduleId
 
@@ -53,15 +54,22 @@ class CallAlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_IMMUTABLE
         )
 
+        val iconRes = if (isInbound) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
+        val contentText = if (isInbound) {
+            context.getString(R.string.notification_inbound_text, contactName)
+        } else {
+            context.getString(R.string.notification_outbound_text, contactName)
+        }
+
         val builder = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_call)
-            .setContentTitle("Upcoming Scheduled Call")
-            .setContentText("Your call with $contactName is starting soon.")
+            .setSmallIcon(iconRes)
+            .setContentTitle(context.getString(R.string.notification_call_title))
+            .setContentText(contentText)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .addAction(android.R.drawable.ic_menu_call, "Call Now", callPendingIntent)
-            .addAction(android.R.drawable.ic_menu_agenda, "View Schedule", pendingIntent)
+            .addAction(android.R.drawable.ic_menu_call, context.getString(R.string.settings_test_call_now), callPendingIntent)
+            .addAction(android.R.drawable.ic_menu_agenda, context.getString(R.string.call_schedule_title), pendingIntent)
 
         manager.notify(notificationId, builder.build())
     }

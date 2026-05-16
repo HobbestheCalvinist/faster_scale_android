@@ -220,13 +220,24 @@
     <string name="settings_start_day">Start Day of Week</string>
     <string name="content_description_expand_contacts">Expand or collapse contacts section</string>
 
-    <string name="label_call_made">Call made today (%1$s)</string>
+    <string name="label_call_made">Phone call today (%1$s)</string>
     <string name="action_check_in">Check In</string>
     <string name="check_in_title_format">Check-in: %1$s</string>
-    <string name="label_call_made_simple">📞 Call Made</string>
+    <string name="label_call_made_simple">Phone Call</string>
     <string name="scheduled_call_details_format">Scheduled: %1$s at %2$s</string>
     <string name="scheduled_contact_format">Contact: %1$s</string>
     <string name="scheduled_phone_format">Phone: %1$s</string>
     <string name="call_schedule_combined_format">%1$s - %2$s - %3$s</string>
     <string name="action_share_week">Share Week</string>
+
+    <string name="label_inbound">Inbound (They call me)</string>
+    <string name="label_outbound">Outbound (I call them)</string>
+    <string name="call_type_inbound">Inbound</string>
+    <string name="call_type_outbound">Outbound</string>
+
+    <string name="notification_call_title">Scheduled Phone Call</string>
+    <string name="notification_inbound_text">Your inbound call with %1$s is starting soon.</string>
+    <string name="notification_outbound_text">It\'s time to call %1$s.</string>
+
+    <string name="label_calls_made_count">%1$d Phone Calls</string>
 </resources>

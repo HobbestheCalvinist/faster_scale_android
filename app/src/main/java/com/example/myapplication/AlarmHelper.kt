@@ -27,6 +27,7 @@ object AlarmHelper {
             putExtra("scheduleId", schedule.id)
             putExtra("contactName", schedule.contactName)
             putExtra("contactPhone", schedule.contactPhone)
+            putExtra("isInbound", schedule.isInbound)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(

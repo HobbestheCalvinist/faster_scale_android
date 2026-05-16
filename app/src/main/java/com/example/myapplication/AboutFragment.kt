@@ -144,9 +144,14 @@ class AboutFragment : Fragment() {
                     backupData.preferences.forEach { (key, value) ->
                         when (value) {
                             is Boolean -> editor.putBoolean(key, value)
-                            is Int -> editor.putInt(key, value)
-                            is Long -> editor.putLong(key, value)
-                            is Float -> editor.putFloat(key, value)
+                            is Double -> {
+                                // GSON deserializes all numbers as Double by default
+                                if (value % 1.0 == 0.0) {
+                                    editor.putInt(key, value.toInt())
+                                } else {
+                                    editor.putFloat(key, value.toFloat())
+                                }
+                            }
                             is String -> editor.putString(key, value)
                         }
                     }
