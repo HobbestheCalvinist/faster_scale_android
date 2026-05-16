@@ -68,7 +68,7 @@
             style="?attr/materialCardViewFilledStyle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="16dp"
             android:visibility="gone"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
@@ -78,12 +78,12 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp">
+                android:padding="12dp">
 
                 <ImageView
                     android:id="@+id/imageview_call_icon"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:src="@drawable/ic_call"
                     android:contentDescription="Call icon"
                     app:tint="?attr/colorPrimary"
@@ -105,52 +105,46 @@
 
                 <TextView
                     android:id="@+id/textview_scheduled_contact"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
+                    android:layout_marginTop="2dp"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="@id/textview_scheduled_call_details"
                     app:layout_constraintTop_toBottomOf="@id/textview_scheduled_call_details"
-                    tools:text="Contact: John Doe" />
+                    tools:text="John Doe" />
 
                 <TextView
                     android:id="@+id/textview_scheduled_phone"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
+                    android:layout_marginStart="8dp"
                     android:textAppearance="?attr/textAppearanceBodySmall"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="@id/textview_scheduled_call_details"
-                    app:layout_constraintTop_toBottomOf="@id/textview_scheduled_contact"
-                    tools:text="Phone: 555-0199" />
+                    app:layout_constraintBaseline_toBaselineOf="@id/textview_scheduled_contact"
+                    app:layout_constraintStart_toEndOf="@id/textview_scheduled_contact"
+                    tools:text="555-0199" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_call_now"
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
+                    android:layout_marginTop="8dp"
                     android:text="Call Now"
+                    android:paddingHorizontal="12dp"
+                    android:minHeight="0dp"
                     app:icon="@drawable/ic_call"
                     app:layout_constraintStart_toStartOf="@id/textview_scheduled_call_details"
-                    app:layout_constraintTop_toBottomOf="@id/textview_scheduled_phone" />
-
-                <com.google.android.material.divider.MaterialDivider
-                    android:id="@+id/divider_call"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    app:layout_constraintTop_toBottomOf="@id/button_call_now" />
+                    app:layout_constraintTop_toBottomOf="@id/textview_scheduled_contact" />
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switch_call_made"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_width="137dp"
+                    android:layout_height="39dp"
                     android:text="@string/label_call_made_simple"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
-                    app:layout_constraintTop_toBottomOf="@id/divider_call" />
+                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    app:layout_constraintBottom_toBottomOf="@id/button_call_now"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@id/button_call_now" />
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
