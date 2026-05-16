@@ -90,7 +90,7 @@ class HistoryFragment : Fragment() {
                         
                         binding.recyclerviewHistory.adapter = historyAdapter
                     } else {
-                        historyAdapter?.updateData(groupedItems)
+                        historyAdapter?.updateData(groupedItems, shareTrustedOnly)
                     }
 
                     binding.buttonShareAll.setOnClickListener {

@@ -15,7 +15,7 @@ sealed class HistoryListItem {
 
 class HistoryAdapter(
     private var allItems: List<HistoryListItem>,
-    private val isTrustedOnly: Boolean,
+    private var isTrustedOnly: Boolean,
     private val onEditClick: (CheckIn) -> Unit,
     private val onDeleteClick: (CheckIn) -> Unit,
     private val onShareClick: (CheckIn) -> Unit
@@ -128,8 +128,9 @@ class HistoryAdapter(
 
     override fun getItemCount() = visibleItems.size
 
-    fun updateData(newItems: List<HistoryListItem>) {
+    fun updateData(newItems: List<HistoryListItem>, isTrustedOnly: Boolean) {
         this.allItems = newItems
+        this.isTrustedOnly = isTrustedOnly
         updateVisibleItems()
         notifyDataSetChanged()
     }
