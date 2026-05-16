@@ -19,12 +19,19 @@
     <color name="calendar_other_month_text">#888888</color>
     <color name="calendar_disabled_text">#666666</color>
 
-    <!-- FASTER Scale Colors (Progression: Green -> Yellow -> Red -> Dark Orange) -->
+    <!-- Widget Specific Colors (Light) -->
+    <color name="widget_bg">#FFFFFF</color>
+    <color name="widget_text_primary">#1C1B1F</color>
+    <color name="widget_text_secondary">#49454F</color>
+    <color name="widget_accent">#FF6200EE</color>
+    <color name="widget_divider">#E0E0E0</color>
+
+    <!-- FASTER Scale Colors -->
     <color name="color_restoration">#388E3C</color> <!-- Dark Green -->
-    <color name="color_forgetting">#AFB42B</color>   <!-- Lime (Yellow-Green) -->
+    <color name="color_forgetting">#AFB42B</color>   <!-- Lime -->
     <color name="color_anxiety">#FBC02D</color>      <!-- Yellow -->
     <color name="color_speeding">#F57C00</color>     <!-- Orange -->
     <color name="color_ticked_off">#D32F2F</color>   <!-- Red -->
-    <color name="color_exhausted">#BF360C</color>    <!-- Dark Orange (Deep Orange 900) -->
+    <color name="color_exhausted">#BF360C</color>    <!-- Dark Orange -->
     <color name="color_relapse">#212121</color>      <!-- Black -->
 </resources>
