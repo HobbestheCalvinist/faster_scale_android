@@ -14,6 +14,11 @@ class MainTabsFragment : Fragment() {
     private var _binding: FragmentMainTabsBinding? = null
     private val binding get() = _binding!!
 
+    companion object {
+        const val EXTRA_OPEN_TAB = "OPEN_TAB"
+        const val EXTRA_SHOW_CHECKIN = "SHOW_CHECKIN"
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -49,8 +54,6 @@ class MainTabsFragment : Fragment() {
         })
 
         // Handle Back Swipe: Intercept back press on the main tabs.
-        // This satisfies "Only accept the 'back' swipe for settings, about, or check in popups."
-        // Settings and About are destinations in the parent NavHost, so they aren't intercepted by this.
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (binding.viewPager.currentItem > 0) {
@@ -64,6 +67,27 @@ class MainTabsFragment : Fragment() {
                 }
             }
         })
+
+        // Handle Navigation from Notifications
+        handleIntentExtras()
+    }
+
+    private fun handleIntentExtras() {
+        val intent = activity?.intent ?: return
+        
+        val tabToOpen = intent.getIntExtra(EXTRA_OPEN_TAB, -1)
+        if (tabToOpen != -1) {
+            binding.viewPager.post {
+                binding.viewPager.currentItem = tabToOpen
+            }
+            intent.removeExtra(EXTRA_OPEN_TAB)
+        }
+
+        if (intent.getBooleanExtra(EXTRA_SHOW_CHECKIN, false)) {
+            intent.removeExtra(EXTRA_SHOW_CHECKIN)
+            val dialog = CheckInDialogFragment.newInstance(System.currentTimeMillis())
+            dialog.show(childFragmentManager, "CheckInDialog")
+        }
     }
 
     private fun updateTitle(position: Int) {
@@ -81,6 +105,10 @@ class MainTabsFragment : Fragment() {
         super.onResume()
         // Ensure title is correct when returning from Settings or About
         updateTitle(binding.viewPager.currentItem)
+        
+        // Also check for new intents if MainActivity was already running
+        // Note: For full robustness, MainActivity should override onNewIntent and update its intent
+        handleIntentExtras()
     }
 
     override fun onDestroyView() {

@@ -89,14 +89,28 @@
                     android:padding="8dp"
                     android:text="@string/settings_phone_call_reminder" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/button_test_notification"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:layout_margin="8dp"
-                    android:text="@string/settings_test_notifications" />
+                    android:orientation="horizontal"
+                    android:gravity="end"
+                    android:padding="8dp">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_test_call_notification"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:text="@string/settings_test_call_now" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/button_test_notification"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_test_checkin" />
+                </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

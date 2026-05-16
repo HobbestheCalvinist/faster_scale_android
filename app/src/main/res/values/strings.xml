@@ -208,7 +208,8 @@
     <string name="settings_checkin_reminder">Daily Check-in Reminder</string>
     <string name="settings_checkin_time">Check-in Time:</string>
     <string name="settings_phone_call_reminder">Phone Call Reminder</string>
-    <string name="settings_test_notifications">Test Notifications</string>
+    <string name="settings_test_checkin">Test Check-in</string>
+    <string name="settings_test_call_now">Test Call Now</string>
     <string name="settings_general">General</string>
     <string name="settings_manage_contacts">Manage Contacts</string>
     <string name="settings_add_contact">Add Contact</string>
