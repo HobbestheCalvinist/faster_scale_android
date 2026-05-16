@@ -61,21 +61,21 @@
     <!-- FASTER Scale Behaviors -->
     <string-array name="behaviors_restoration">
         <item>No current secrets</item>
+        <item>Truly accountable</item>
         <item>Working to resolve problems</item>
         <item>Identifying fears and feelings</item>
         <item>Keeping commitments - bible reading, prayer, church</item>
-        <item>Keeping commitments - family, group members, coworkers</item>
+        <item>Keeping commitments - family, group, coworkers</item>
         <item>Keeping commitments to change</item>
         <item>Being open and honest</item>
         <item>Making eye contact</item>
         <item>Increasing in relationships others</item>
-        <item>True accountability</item>
     </string-array>
 
     <string-array name="behaviors_forgetting">
         <item>Denial</item>
-        <item>Changing important goals (time, energy, thoughts)</item>
         <item>Secrets / Lying </item>
+        <item>Changing important goals (time, energy, thoughts)</item>
         <item>Decreased / Avoiding accountability</item>
         <item>Sarcasm / Overconfidence</item>
         <item>Isolating</item>
@@ -94,51 +94,51 @@
         <item>Resentful</item>
         <item>Replaying old, negative thoughts</item>
         <item>Perfectionism</item>
-        <item>Judging other’s motives / Mind reading</item>
         <item>Unrealistic planning</item>
         <item>Fantasy</item>
         <item>Codependent rescuing</item>
+        <item>Judging other’s motives / Mind reading</item>
         <item>Sleep problems</item>
-        <item>Seeking or creating drama</item>
-        <item>Trouble concentrating</item>
-        <item>Misusing medications to cope</item>
+        <item>Seeking / creating drama</item>
         <item>Flirting for validation</item>
+        <item>Trouble concentrating</item>
+        <item>Misusing medications</item>
+
     </string-array>
 
     <string-array name="behaviors_speeding">
         <item>Constantly busy</item>
         <item>Always in a hurry</item>
-        <item>Workaholic (justifying the work)</item>
+        <item>Workaholic / need to “do it all”</item>
         <item>Can’t relax / Avoiding slowing down</item>
         <item>Feeling driven</item>
         <item>Racing thoughts / Spiraling</item>
         <item>Over or under eating</item>
         <item>Overspending</item>
-        <item>Online or Window Shopping</item>
-        <item>Can’t identify own feelings/needs</item>
+        <item>Online / Window Shopping</item>
+        <item>Can’t identify own feelings / needs</item>
         <item>Repetitive negative thoughts</item>
         <item>Dramatic mood swings</item>
         <item>Excessive caffeine</item>
         <item>Over-exercising</item>
         <item>Irritable / Impatient</item>
-        <item>Nervous / Defensive </item>
-        <item>Difficulty being alone / or with people</item>
-        <item>Difficulty listening to others</item>
-        <item>Making excuses to “do it all”</item>
+        <item>Nervous</item>
+        <item>Difficulty being alone or with people</item>
+        <item>Defensive</item>
+        <item>Difficulty listening</item>
     </string-array>
-
     <string-array name="behaviors_ticked_off">
-        <item>Crisis-Procrastination cycle in money, work, and relationships</item>
+        <item>Crisis in money, work, and relationships</item>
         <item>Increased sarcasm</item>
         <item>Bitterness</item>
         <item>Black and white (all or nothing) thinking</item>
         <item>Irrational thinking</item>
+        <item>Constantly resentful</item>
         <item>Blaming / Arguing / Can’t take criticism</item>
         <item>Loneliness</item>
         <item>Nobody understands / Defensive</item>
         <item>Overreacting</item>
         <item>Road rage</item>
-        <item>Constant resentments</item>
         <item>Pushing others away / Increasing isolation</item>
         <item>Superiority / Needing to be right</item>
         <item>People avoiding you</item>
@@ -150,28 +150,28 @@
     </string-array>
 
     <string-array name="behaviors_exhausted">
-        <item>Depressed / Hopelessness</item>
+        <item>Depressed / Hopeless</item>
         <item>Panicked / Confused</item>
         <item>Sleeping too much or too little</item>
         <item>Can’t cope / Overwhelmed</item>
+        <item>Want to run</item>
         <item>Crying for “no reason”</item>
         <item>Can’t think / Forgetful</item>
         <item>Pessimistic</item>
         <item>Helpless</item>
         <item>Tired</item>
         <item>Numb</item>
-        <item>Wanting to run</item>
+        <item>Really isolating</item>
+        <item>Hitting guardrails</item>
         <item>Constant cravings for old coping behaviors</item>
         <item>Thinking of using sex, drugs, or alcohol</item>
         <item>Seeking old unhealthy people or places</item>
-        <item>Really isolating</item>
         <item>Cancelling plans / Missing work</item>
-        <item>People angry with you</item>
+        <item>People angry at you</item>
         <item>Self-abuse / Suicidal thoughts</item>
         <item>No goals / Survival mode</item>
-        <item>Not returning phone calls</item>
+        <item>Missing phone calls</item>
         <item>Loss of appetite / Constant eating</item>
-        <item>Hitting boundaries</item>
     </string-array>
 
     <string-array name="behaviors_relapse">
@@ -181,14 +181,13 @@
         <item>Out of control</item>
         <item>Lost in addiction</item>
         <item>Lying to yourself and others</item>
-        <item>Believing you cannot cope without unhealthy behaviors</item>
-        <item>Redefining limits to justify behavior"</item>
-        <item>Believing this time doesn’t count”</item>
+        <item>Believing you need harmful coping behaviors</item>
+        <item>Redefining limits to justify behavior</item>
+        <item>Believing this time doesn’t count</item>
         <item>I’ve already failed, might as well go further</item>
         <item>Living a double-life</item>
         <item>Turning a slip into a spiral</item>
-        <Item>Abandoning recovery</Item>
-        <item></item>
+        <item>Abandoning recovery</item>
     </string-array>
 
     <string name="title_add_call_schedule">Add Call Schedule</string>

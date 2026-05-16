@@ -6,7 +6,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
@@ -26,7 +25,7 @@ class CheckInDialogFragment : DialogFragment() {
     private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
     private var selectedDate: Calendar = Calendar.getInstance()
 
-    private var scaleOptions: List<Pair<String, String>> = emptyList()
+    private var scaleOptionsList: List<ScaleOption> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,14 +50,14 @@ class CheckInDialogFragment : DialogFragment() {
         val context = context ?: return
         db = AppDatabase.getDatabase(context)
 
-        scaleOptions = listOf(
-            getString(R.string.scale_restoration) to getString(R.string.desc_restoration),
-            getString(R.string.scale_forgetting) to getString(R.string.desc_forgetting),
-            getString(R.string.scale_anxiety) to getString(R.string.desc_anxiety),
-            getString(R.string.scale_speeding) to getString(R.string.desc_speeding),
-            getString(R.string.scale_ticked_off) to getString(R.string.desc_ticked_off),
-            getString(R.string.scale_exhausted) to getString(R.string.desc_exhausted),
-            getString(R.string.scale_relapse) to getString(R.string.desc_relapse)
+        scaleOptionsList = listOf(
+            ScaleOption(getString(R.string.scale_restoration), getString(R.string.desc_restoration)),
+            ScaleOption(getString(R.string.scale_forgetting), getString(R.string.desc_forgetting)),
+            ScaleOption(getString(R.string.scale_anxiety), getString(R.string.desc_anxiety)),
+            ScaleOption(getString(R.string.scale_speeding), getString(R.string.desc_speeding)),
+            ScaleOption(getString(R.string.scale_ticked_off), getString(R.string.desc_ticked_off)),
+            ScaleOption(getString(R.string.scale_exhausted), getString(R.string.desc_exhausted)),
+            ScaleOption(getString(R.string.scale_relapse), getString(R.string.desc_relapse))
         )
 
         binding.textviewDialogTitle.text = getString(R.string.check_in_title_format, dateFormatter.format(selectedDate.time))
@@ -78,15 +77,13 @@ class CheckInDialogFragment : DialogFragment() {
 
     private fun setupDropdown() {
         val context = context ?: return
-        val displayOptions = scaleOptions.map { "${it.first}: ${it.second}" }
-        val adapter = ArrayAdapter(context, R.layout.item_dropdown_multiline, displayOptions)
+        val adapter = ScaleOptionAdapter(context, scaleOptionsList)
         binding.autocompletetextviewScale.setAdapter(adapter)
 
         binding.autocompletetextviewScale.setOnItemClickListener { _, _, position, _ ->
-            val selectedText = adapter.getItem(position) ?: ""
-            val selectedOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: ""
-            if (selectedOption.isNotEmpty()) {
-                updateBehaviorsSection(selectedOption)
+            val selectedOption = adapter.getItem(position)
+            if (selectedOption != null) {
+                updateBehaviorsSection(selectedOption.title)
             }
         }
     }
@@ -113,23 +110,41 @@ class CheckInDialogFragment : DialogFragment() {
             } catch (e: Exception) {
                 emptyArray<String>()
             }
+            
+            val currentDescription = binding.edittextDescription.text.toString()
+            val currentLines = currentDescription.lines().map { 
+                it.trim().removePrefix("•").removePrefix("\u2022").trim() 
+            }
+            
             behaviors.forEach { behavior ->
                 val chip = Chip(context).apply {
                     text = behavior
                     isCheckable = true
+                    // Set initial state based on description
+                    isChecked = currentLines.contains(behavior.trim())
+                    
                     setOnClickListener {
+                        val isNowChecked = isChecked
                         val currentText = binding.edittextDescription.text.toString()
-                        val behaviorText = "• $behavior"
-                        if (currentText.isEmpty()) {
-                            binding.edittextDescription.setText(behaviorText)
-                        } else if (!currentText.contains(behavior)) {
-                            if (!currentText.endsWith("\n")) {
-                                binding.edittextDescription.append("\n")
+                        val behaviorWithBullet = "• $behavior"
+                        
+                        if (isNowChecked) {
+                            val lines = currentText.lines().map { it.trim().removePrefix("•").removePrefix("\u2022").trim() }
+                            if (!lines.contains(behavior.trim())) {
+                                if (currentText.isBlank()) {
+                                    binding.edittextDescription.setText(behaviorWithBullet)
+                                } else {
+                                    val separator = if (currentText.endsWith("\n")) "" else "\n"
+                                    binding.edittextDescription.append(separator + behaviorWithBullet)
+                                }
                             }
-                            binding.edittextDescription.append(behaviorText)
+                        } else {
+                            val lines = currentText.lines().filter { 
+                                it.trim().removePrefix("•").removePrefix("\u2022").trim() != behavior.trim() 
+                            }
+                            binding.edittextDescription.setText(lines.filter { it.isNotBlank() }.joinToString("\n"))
                         }
                         binding.edittextDescription.setSelection(binding.edittextDescription.text?.length ?: 0)
-                        isChecked = true
                     }
                 }
                 binding.chipgroupBehaviors.addView(chip)
@@ -182,12 +197,13 @@ class CheckInDialogFragment : DialogFragment() {
                 val checkIn = currentDb.checkInDao().getCheckInByDate(dateKey.trim())
                 _binding?.let { b ->
                     if (checkIn != null) {
-                        val displayValue = scaleOptions.find { it.first == checkIn.scaleOption.trim() }?.let { "${it.first}: ${it.second}" }
-                        if (displayValue != null) {
-                            b.autocompletetextviewScale.setText(displayValue, false)
+                        val displayOption = scaleOptionsList.find { it.title == checkIn.scaleOption.trim() }
+                        if (displayOption != null) {
+                            b.autocompletetextviewScale.setText(displayOption.title, false)
+                            // Important: Update behaviors AFTER setting the description to ensure chips are correctly checked
+                            b.edittextDescription.setText(checkIn.description)
                             updateBehaviorsSection(checkIn.scaleOption)
                         }
-                        b.edittextDescription.setText(checkIn.description)
                         b.switchCallMade.isChecked = checkIn.callMade
                     }
                 }
@@ -205,7 +221,7 @@ class CheckInDialogFragment : DialogFragment() {
             return
         }
 
-        val scaleOption = scaleOptions.find { "${it.first}: ${it.second}" == selectedText }?.first ?: selectedText
+        val scaleOption = scaleOptionsList.find { it.title == selectedText }?.title ?: selectedText
         val description = binding.edittextDescription.text.toString()
         val callMade = if (binding.cardCallInfo.visibility == View.VISIBLE) binding.switchCallMade.isChecked else false
         val date = dateFormatter.format(selectedDate.time)
