@@ -79,6 +79,7 @@ class SettingsFragment : Fragment() {
         setupNotificationSettings()
         setupStartDaySettings()
         setupShareSettings()
+        setupDemoMode()
         setupContactSettings()
         setupBackupRestore()
     }
@@ -180,6 +181,19 @@ class SettingsFragment : Fragment() {
         binding.switchShareTrusted.isChecked = isShareTrustedEnabled
         binding.switchShareTrusted.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("share_trusted_only", isChecked).apply()
+        }
+    }
+
+    private fun setupDemoMode() {
+        val isDemoMode = sharedPreferences.getBoolean("demo_mode", false)
+        binding.switchDemoMode.isChecked = isDemoMode
+        binding.switchDemoMode.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("demo_mode", isChecked).apply()
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Restart Required")
+                .setMessage(R.string.demo_mode_desc)
+                .setPositiveButton("OK", null)
+                .show()
         }
     }
 

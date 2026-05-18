@@ -240,4 +240,6 @@
     <string name="notification_outbound_text">It\'s time to call %1$s.</string>
 
     <string name="label_calls_made_count">%1$d Phone Calls</string>
+    <string name="settings_demo_mode">Demo Mode (Screenshot Ready)</string>
+    <string name="demo_mode_desc">Switching to demo mode will show fake data for screenshots. Please restart the app after toggling this.</string>
 </resources>
