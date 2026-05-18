@@ -16,16 +16,28 @@
         android:padding="12dp">
 
         <TextView
-            android:id="@+id/textview_combined_info"
+            android:id="@+id/textview_contact_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@id/button_call"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="John Doe - Monday - 10:00 AM" />
+            tools:text="John Doe" />
+
+        <TextView
+            android:id="@+id/textview_call_details"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/button_call"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/textview_contact_name"
+            tools:text="Monday at 10:00 AM" />
 
         <ImageButton
             android:id="@+id/button_call"

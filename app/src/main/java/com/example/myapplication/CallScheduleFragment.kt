@@ -131,6 +131,7 @@ class CallScheduleFragment : Fragment() {
                 val day = dialogBinding.exposedDropdownDay.editText?.text.toString()
                 val time = dialogBinding.textviewTimeValue.text.toString()
                 val contactName = dialogBinding.exposedDropdownContact.editText?.text.toString()
+                val isInbound = dialogBinding.switchInbound.isChecked
 
                 if (day.isNotEmpty() && time.isNotEmpty() && contactName.isNotEmpty()) {
                     viewLifecycleOwner.lifecycleScope.launch {
@@ -143,14 +144,13 @@ class CallScheduleFragment : Fragment() {
                                 time = time,
                                 contactId = selectedContact.id,
                                 contactName = selectedContact.name,
-                                contactPhone = selectedContact.phoneNumber
+                                contactPhone = selectedContact.phoneNumber,
+                                isInbound = isInbound
                             )
                             if (isEdit) {
                                 db.callScheduleDao().updateSchedule(newSchedule)
                                 AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule)
                             } else {
-                                // For new insertions, we need the auto-generated ID to schedule the alarm correctly.
-                                // We'll query it back or perform insertion and then schedule.
                                 val id = db.callScheduleDao().insertSchedule(newSchedule)
                                 AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule.copy(id = id.toInt()))
                             }
@@ -197,6 +197,7 @@ class CallScheduleFragment : Fragment() {
                 (dialogBinding.exposedDropdownDay.editText as? AutoCompleteTextView)?.setText(s.dayOfWeek, false)
                 dialogBinding.textviewTimeValue.text = s.time
                 (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setText(s.contactName, false)
+                dialogBinding.switchInbound.isChecked = s.isInbound
             }
             validate()
         }

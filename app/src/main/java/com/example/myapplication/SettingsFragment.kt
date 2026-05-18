@@ -1,15 +1,12 @@
 package com.example.myapplication
 
 import android.Manifest
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
 import android.view.LayoutInflater
@@ -82,6 +79,7 @@ class SettingsFragment : Fragment() {
         setupNotificationSettings()
         setupStartDaySettings()
         setupShareSettings()
+        setupDemoMode()
         setupContactSettings()
         setupBackupRestore()
     }
@@ -98,9 +96,9 @@ class SettingsFragment : Fragment() {
         binding.switchReminder.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("reminder_enabled", isChecked).apply()
             if (isChecked) {
-                scheduleReminder(hour, minute)
+                AlarmHelper.scheduleDailyReminder(requireContext(), hour, minute)
             } else {
-                cancelReminder()
+                AlarmHelper.cancelDailyReminder(requireContext())
             }
         }
 
@@ -112,7 +110,7 @@ class SettingsFragment : Fragment() {
                     .apply()
                 updateTimeText(h, m)
                 if (binding.switchReminder.isChecked) {
-                    scheduleReminder(h, m)
+                    AlarmHelper.scheduleDailyReminder(requireContext(), h, m)
                 }
             }, hour, minute, false).show()
         }
@@ -139,6 +137,7 @@ class SettingsFragment : Fragment() {
                 putExtra("contactName", "Test Contact")
                 putExtra("contactPhone", "555-0199")
                 putExtra("scheduleId", 999)
+                putExtra("isInbound", false)
             }
             requireContext().sendBroadcast(intent)
             Toast.makeText(requireContext(), "Test call alert sent", Toast.LENGTH_SHORT).show()
@@ -180,6 +179,22 @@ class SettingsFragment : Fragment() {
     private fun setupShareSettings() {
         val isShareTrustedEnabled = sharedPreferences.getBoolean("share_trusted_only", false)
         binding.switchShareTrusted.isChecked = isShareTrustedEnabled
+        binding.switchShareTrusted.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("share_trusted_only", isChecked).apply()
+        }
+    }
+
+    private fun setupDemoMode() {
+        val isDemoMode = sharedPreferences.getBoolean("demo_mode", false)
+        binding.switchDemoMode.isChecked = isDemoMode
+        binding.switchDemoMode.setOnCheckedChangeListener { _, isChecked ->
+            sharedPreferences.edit().putBoolean("demo_mode", isChecked).apply()
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Restart Required")
+                .setMessage(R.string.demo_mode_desc)
+                .setPositiveButton("OK", null)
+                .show()
+        }
     }
 
     private fun setupContactSettings() {
@@ -271,9 +286,14 @@ class SettingsFragment : Fragment() {
                     backupData.preferences.forEach { (key, value) ->
                         when (value) {
                             is Boolean -> editor.putBoolean(key, value)
-                            is Int -> editor.putInt(key, value)
-                            is Long -> editor.putLong(key, value)
-                            is Float -> editor.putFloat(key, value)
+                            is Double -> {
+                                // GSON deserializes all numbers as Double by default
+                                if (value % 1.0 == 0.0) {
+                                    editor.putInt(key, value.toInt())
+                                } else {
+                                    editor.putFloat(key, value.toFloat())
+                                }
+                            }
                             is String -> editor.putString(key, value)
                         }
                     }
@@ -367,54 +387,6 @@ class SettingsFragment : Fragment() {
         val amPm = if (calendar.get(Calendar.AM_PM) == Calendar.AM) "AM" else "PM"
         val displayHour = if (hour % 12 == 0) 12 else hour % 12
         binding.textviewSelectedTime.text = String.format("%02d:%02d %s", displayHour, minute, amPm)
-    }
-
-    private fun scheduleReminder(hour: Int, minute: Int) {
-        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), ReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val calendar = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
-            if (before(Calendar.getInstance())) {
-                add(Calendar.DATE, 1)
-            }
-        }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
-            } else {
-                alarmManager.setAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
-            }
-        } else {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                pendingIntent
-            )
-        }
-    }
-
-    private fun cancelReminder() {
-        val alarmManager = requireContext().getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(requireContext(), ReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            requireContext(), 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-        alarmManager.cancel(pendingIntent)
     }
 
     override fun onDestroyView() {

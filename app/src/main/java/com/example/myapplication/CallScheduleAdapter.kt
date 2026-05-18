@@ -59,13 +59,22 @@ class CallScheduleAdapter(
 
     inner class ItemViewHolder(private val binding: ItemCallScheduleBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(schedule: CallSchedule) {
-            val context = binding.root.context
-            binding.textviewCombinedInfo.text = context.getString(
+            binding.textviewContactName.text = schedule.contactName
+            val callType = if (schedule.isInbound) {
+                binding.root.context.getString(R.string.call_type_inbound)
+            } else {
+                binding.root.context.getString(R.string.call_type_outbound)
+            }
+            
+            binding.textviewCallDetails.text = binding.root.context.getString(
                 R.string.call_schedule_combined_format,
-                schedule.contactName,
                 schedule.dayOfWeek,
-                schedule.time
+                schedule.time,
+                callType
             )
+            
+            val iconRes = if (schedule.isInbound) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
+            binding.buttonCall.setImageResource(iconRes)
             
             binding.buttonCall.setOnClickListener { onCallClick(schedule) }
             binding.buttonEdit.setOnClickListener { onEditClick(schedule) }

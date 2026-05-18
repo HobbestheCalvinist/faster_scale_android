@@ -90,7 +90,7 @@ class HistoryFragment : Fragment() {
                         
                         binding.recyclerviewHistory.adapter = historyAdapter
                     } else {
-                        historyAdapter?.updateData(groupedItems)
+                        historyAdapter?.updateData(groupedItems, shareTrustedOnly)
                     }
 
                     binding.buttonShareAll.setOnClickListener {
@@ -199,11 +199,16 @@ class HistoryFragment : Fragment() {
     }
 
     private fun getShareText(checkIn: CheckIn): String {
+        val callStatus = if (checkIn.callMade) {
+            val count = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }.size
+            if (count > 1) "$count Calls Completed" else "Yes"
+        } else "No"
+
         return """
             |Faster Scale Check-in
             |Date: ${checkIn.date}
             |Level: ${checkIn.scaleOption}
-            |Call Made: ${if (checkIn.callMade) "Yes" else "No"}
+            |Phone Call: $callStatus
             |Notes: 
             |${checkIn.description}
         """.trimMargin()
@@ -212,9 +217,14 @@ class HistoryFragment : Fragment() {
     private fun getHistoryReport(checkIns: List<CheckIn>, title: String): String {
         val report = StringBuilder("Faster Scale Recovery - $title\n\n")
         checkIns.forEach { checkIn ->
+            val callStatus = if (checkIn.callMade) {
+                val count = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }.size
+                if (count > 1) "$count Calls Completed" else "Yes"
+            } else "No"
+
             report.append("Date: ${checkIn.date}\n")
             report.append("Level: ${checkIn.scaleOption}\n")
-            report.append("Call Made: ${if (checkIn.callMade) "Yes" else "No"}\n")
+            report.append("Phone Call: $callStatus\n")
             if (checkIn.description.isNotBlank()) {
                 report.append("Notes: ${checkIn.description}\n")
             }

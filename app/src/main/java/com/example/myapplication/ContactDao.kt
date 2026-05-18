@@ -9,7 +9,7 @@ interface ContactDao {
     fun getAllContacts(): Flow<List<Contact>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertContact(contact: Contact)
+    suspend fun insertContact(contact: Contact): Long
 
     @Delete
     suspend fun deleteContact(contact: Contact)

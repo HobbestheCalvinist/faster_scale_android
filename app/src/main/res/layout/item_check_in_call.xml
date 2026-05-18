@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/imageview_call_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:contentDescription="Call direction icon"
+        android:src="@drawable/ic_call_outbound"
+        app:layout_constraintBottom_toBottomOf="@id/textview_contact_name"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textview_call_details"
+        app:tint="?attr/colorPrimary" />
+
+    <TextView
+        android:id="@+id/textview_call_details"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:textAppearance="?attr/textAppearanceTitleSmall"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/button_call_now"
+        app:layout_constraintStart_toEndOf="@id/imageview_call_icon"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="10:00 AM - Outbound" />
+
+    <TextView
+        android:id="@+id/textview_contact_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintEnd_toStartOf="@id/button_call_now"
+        app:layout_constraintStart_toStartOf="@id/textview_call_details"
+        app:layout_constraintTop_toBottomOf="@id/textview_call_details"
+        tools:text="John Doe" />
+
+    <ImageButton
+        android:id="@+id/button_call_now"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Call now"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_call"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/switch_call_made"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorPrimary" />
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switch_call_made"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

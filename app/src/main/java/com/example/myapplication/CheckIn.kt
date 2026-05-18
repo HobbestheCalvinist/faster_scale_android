@@ -10,8 +10,10 @@ import androidx.room.PrimaryKey
 )
 data class CheckIn(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
-    val date: String,
-    val scaleOption: String,
+    val date: String = "",
+    val scaleOption: String = "",
     val description: String = "",
-    val callMade: Boolean = false
+    val callMade: Boolean = false,
+    val isInboundCall: Boolean = false,
+    val completedScheduleIds: String = ""
 )

@@ -16,7 +16,8 @@ data class CalendarDay(
     val scaleOption: String? = null,
     val isSelected: Boolean = false,
     val isToday: Boolean = false,
-    val hasCall: Boolean = false
+    val hasCall: Boolean = false,
+    val isInbound: Boolean = false
 )
 
 class CalendarAdapter(
@@ -85,6 +86,9 @@ class CalendarAdapter(
         // Call Icon
         if (day.hasCall) {
             holder.binding.dayIcon.visibility = View.VISIBLE
+            val iconRes = if (day.isInbound) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
+            holder.binding.dayIcon.setImageResource(iconRes)
+
             val iconTint = if (day.scaleOption != null) {
                 ContextCompat.getColor(context, android.R.color.white)
             } else {
