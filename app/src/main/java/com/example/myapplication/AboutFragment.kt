@@ -67,6 +67,11 @@ class AboutFragment : Fragment() {
             binding.textviewVersion.text = "Version 1.0"
         }
 
+        binding.buttonGenesisWebsite.setOnClickListener {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.genesisprocess.org/"))
+            startActivity(intent)
+        }
+
         binding.buttonEmail.setOnClickListener {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = Uri.parse("mailto:HobbestheCalvinist@gmail.com")

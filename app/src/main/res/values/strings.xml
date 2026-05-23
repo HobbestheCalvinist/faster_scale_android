@@ -250,4 +250,8 @@
     <string name="demo_mode_desc">Switching to demo mode will show fake data for screenshots. Please restart the app after toggling this.</string>
     <string name="action_share_other">Share using other apps (Email, Messaging, etc.)…</string>
     <string name="title_share_via">Share via…</string>
+
+    <string name="about_attribution_label">Inspiration</string>
+    <string name="about_attribution_text">Inspired by the work done by the Genesis Process.</string>
+    <string name="about_genesis_website">Visit Genesis Process</string>
 </resources>
