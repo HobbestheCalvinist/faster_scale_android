@@ -26,12 +26,12 @@
     <color name="widget_accent">#FF6200EE</color>
     <color name="widget_divider">#E0E0E0</color>
 
-    <!-- FASTER Scale Colors -->
-    <color name="color_restoration">#388E3C</color> <!-- Dark Green -->
-    <color name="color_forgetting">#AFB42B</color>   <!-- Lime -->
-    <color name="color_anxiety">#FBC02D</color>      <!-- Yellow -->
-    <color name="color_speeding">#F57C00</color>     <!-- Orange -->
-    <color name="color_ticked_off">#D32F2F</color>   <!-- Red -->
-    <color name="color_exhausted">#BF360C</color>    <!-- Dark Orange -->
-    <color name="color_relapse">#212121</color>      <!-- Black -->
+    <!-- FASTER Scale Colors (Deep, Vibrant Shades) -->
+    <color name="color_restoration">#1B5E20</color> <!-- Green 900 -->
+    <color name="color_forgetting">#827717</color>   <!-- Lime 900 -->
+    <color name="color_anxiety">#F9A825</color>      <!-- Yellow 800 -->
+    <color name="color_speeding">#E65100</color>     <!-- Orange 900 -->
+    <color name="color_ticked_off">#BF360C</color>   <!-- Deep Orange 900 -->
+    <color name="color_exhausted">#B71C1C</color>    <!-- Red 900 -->
+    <color name="color_relapse">#4A0000</color>      <!-- Dark Maroon -->
 </resources>

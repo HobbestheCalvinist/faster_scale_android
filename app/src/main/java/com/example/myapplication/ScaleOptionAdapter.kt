@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Filter
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 
 class ScaleOptionAdapter(
     context: Context,
@@ -32,6 +33,23 @@ class ScaleOptionAdapter(
 
         titleView?.text = option?.title
         descriptionView?.text = option?.description
+
+        // Apply scale coloring to the title
+        option?.let {
+            val colorRes = when (it.title) {
+                context.getString(R.string.scale_restoration) -> R.color.color_restoration
+                context.getString(R.string.scale_forgetting) -> R.color.color_forgetting
+                context.getString(R.string.scale_anxiety) -> R.color.color_anxiety
+                context.getString(R.string.scale_speeding) -> R.color.color_speeding
+                context.getString(R.string.scale_ticked_off) -> R.color.color_ticked_off
+                context.getString(R.string.scale_exhausted) -> R.color.color_exhausted
+                context.getString(R.string.scale_relapse) -> R.color.color_relapse
+                else -> null
+            }
+            colorRes?.let { resId ->
+                titleView?.setTextColor(ContextCompat.getColor(context, resId))
+            }
+        }
 
         return view
     }

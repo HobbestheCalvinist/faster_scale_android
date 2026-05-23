@@ -2,6 +2,7 @@ package com.example.myapplication
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -77,8 +78,30 @@ class CallScheduleAdapter(
             binding.buttonCall.setImageResource(iconRes)
             
             binding.buttonCall.setOnClickListener { onCallClick(schedule) }
-            binding.buttonEdit.setOnClickListener { onEditClick(schedule) }
-            binding.buttonDelete.setOnClickListener { onDeleteClick(schedule) }
+            
+            itemView.setOnLongClickListener {
+                showPopupMenu(schedule)
+                true
+            }
+        }
+
+        private fun showPopupMenu(schedule: CallSchedule) {
+            val popup = PopupMenu(itemView.context, itemView)
+            popup.menuInflater.inflate(R.menu.menu_call_schedule_item, popup.menu)
+            popup.setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    R.id.action_edit -> {
+                        onEditClick(schedule)
+                        true
+                    }
+                    R.id.action_delete -> {
+                        onDeleteClick(schedule)
+                        true
+                    }
+                    else -> false
+                }
+            }
+            popup.show()
         }
     }
 

@@ -115,14 +115,20 @@
         <item>Racing thoughts / Spiraling</item>
         <item>Over or under eating</item>
         <item>Overspending</item>
-        <item>Online / Window Shopping</item>
+        <item>Impulse Shopping</item>
+        <item>Hyperstimulation</item>
         <item>Can’t identify own feelings / needs</item>
         <item>Repetitive negative thoughts</item>
         <item>Dramatic mood swings</item>
         <item>Excessive caffeine</item>
         <item>Over-exercising</item>
         <item>Irritable / Impatient</item>
-        <item>Nervous</item>
+        <item>Task and media overload</item>
+        <item>Avoiding silence</item>
+        <item>Compulsive list making</item>
+        <item>Fast talking</item>
+        <item>Skipping breaks</item>
+        <item>Constant noise (TV/Podcasts)</item>
         <item>Difficulty being alone or with people</item>
         <item>Defensive</item>
         <item>Difficulty listening</item>
@@ -242,4 +248,6 @@
     <string name="label_calls_made_count">%1$d Phone Calls</string>
     <string name="settings_demo_mode">Demo Mode (Screenshot Ready)</string>
     <string name="demo_mode_desc">Switching to demo mode will show fake data for screenshots. Please restart the app after toggling this.</string>
+    <string name="action_share_other">Share using other apps (Email, Messaging, etc.)…</string>
+    <string name="title_share_via">Share via…</string>
 </resources>
