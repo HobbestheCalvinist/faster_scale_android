@@ -19,12 +19,12 @@
     <color name="widget_divider">#333333</color>
     <color name="widget_accent">#D0BCFF</color>
 
-    <!-- FASTER Scale Colors (Dark Mode optimized) -->
-    <color name="color_restoration">#43A047</color>
-    <color name="color_forgetting">#C0CA33</color>
-    <color name="color_anxiety">#FDD835</color>
-    <color name="color_speeding">#FB8C00</color>
-    <color name="color_ticked_off">#E53935</color>
-    <color name="color_exhausted">#BF360C</color>
-    <color name="color_relapse">#757575</color>
+    <!-- FASTER Scale Colors (Deeper shades for Dark Mode) -->
+    <color name="color_restoration">#388E3C</color> <!-- Material Green 700 -->
+    <color name="color_forgetting">#AFB42B</color>   <!-- Material Lime 700 -->
+    <color name="color_anxiety">#FBC02D</color>      <!-- Material Yellow 700 -->
+    <color name="color_speeding">#F57C00</color>     <!-- Material Orange 700 -->
+    <color name="color_ticked_off">#E64A19</color>   <!-- Material Deep Orange 700 -->
+    <color name="color_exhausted">#D32F2F</color>    <!-- Material Red 700 -->
+    <color name="color_relapse">#8B0000</color>      <!-- Dark Blood Red -->
 </resources>

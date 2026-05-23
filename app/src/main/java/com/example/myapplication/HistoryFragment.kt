@@ -246,23 +246,27 @@ class HistoryFragment : Fragment() {
     private fun shareWithTrustedContacts(text: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             val contacts = db.contactDao().getAllContacts().first()
+            
             if (contacts.isEmpty()) {
-                Toast.makeText(requireContext(), "No trusted contacts found. Please add them in Settings.", Toast.LENGTH_LONG).show()
+                shareGeneric(text)
                 return@launch
             }
 
-            if (contacts.size == 1) {
-                sendSms(contacts[0].phoneNumber, text)
-            } else {
-                val contactNames = contacts.map { "${it.name} (${it.phoneNumber})" }.toTypedArray()
-                AlertDialog.Builder(requireContext())
-                    .setTitle("Select Recipient")
-                    .setItems(contactNames) { _, which ->
+            val options = mutableListOf<String>()
+            options.addAll(contacts.map { "${it.name} (${it.phoneNumber})" })
+            options.add(getString(R.string.action_share_other))
+            
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.title_share_via)
+                .setItems(options.toTypedArray()) { _, which ->
+                    if (which < contacts.size) {
                         sendSms(contacts[which].phoneNumber, text)
+                    } else {
+                        shareGeneric(text)
                     }
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show()
-            }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
         }
     }
 

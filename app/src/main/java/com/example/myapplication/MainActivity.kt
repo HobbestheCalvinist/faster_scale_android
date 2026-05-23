@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.onNavDestinationSelected
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
@@ -45,17 +46,9 @@ class MainActivity : AppCompatActivity() {
             .findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
         val navController = navHostFragment.navController
 
-        return when (item.itemId) {
-            R.id.action_settings -> {
-                navController.navigate(R.id.SettingsFragment)
-                true
-            }
-            R.id.AboutFragment -> {
-                navController.navigate(R.id.AboutFragment)
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
+        // Using onNavDestinationSelected automatically handles launchSingleTop = true
+        // and matches menu item IDs with navigation destination IDs.
+        return item.onNavDestinationSelected(navController) || super.onOptionsItemSelected(item)
     }
 
     override fun onSupportNavigateUp(): Boolean {
