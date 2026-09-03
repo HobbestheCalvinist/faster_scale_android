@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 data class BackupData(
     val checkIns: List<CheckIn> = emptyList(),

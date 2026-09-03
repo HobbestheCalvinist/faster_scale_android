@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.content.Context
 import androidx.room.Database
@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class], version = 13, exportSchema = false)
+@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class], version = 14, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun checkInDao(): CheckInDao
     abstract fun contactDao(): ContactDao
@@ -133,7 +133,9 @@ abstract class AppDatabase : RoomDatabase() {
                     scaleOption = levels[i % levels.size],
                     description = "Feeling ${levels[i % levels.size].lowercase()} today. Focusing on my commitments.",
                     callMade = i % 3 == 0,
-                    isInboundCall = i % 6 == 0
+                    isInboundCall = i % 6 == 0,
+                    liedToday = i % 7 == 0,
+                    workingCommitments = i % 2 == 0
                 ))
             }
         }

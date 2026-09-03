@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.content.Context
 import android.os.Bundle
@@ -14,7 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myapplication.databinding.FragmentCommitmentBinding
+import com.fasterscale.app.databinding.FragmentCommitmentBinding
 import com.google.android.material.slider.Slider
 import kotlinx.coroutines.launch
 import java.util.Calendar

@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import androidx.room.Entity
 import androidx.room.Index
@@ -15,5 +15,7 @@ data class CheckIn(
     val description: String = "",
     val callMade: Boolean = false,
     val isInboundCall: Boolean = false,
-    val completedScheduleIds: String = ""
+    val completedScheduleIds: String = "",
+    val liedToday: Boolean = false,
+    val workingCommitments: Boolean = false
 )

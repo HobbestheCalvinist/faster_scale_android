@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.graphics.Typeface
 import android.util.TypedValue
@@ -8,7 +8,7 @@ import android.view.ViewGroup
 import androidx.annotation.AttrRes
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.databinding.ItemCalendarDayBinding
+import com.fasterscale.app.databinding.ItemCalendarDayBinding
 
 data class CalendarDay(
     val dayOfMonth: String,

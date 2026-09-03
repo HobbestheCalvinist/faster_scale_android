@@ -9,6 +9,10 @@
         android:icon="@drawable/ic_history"
         android:title="History" />
     <item
+        android:id="@+id/IntrospectionFragment"
+        android:icon="@android:drawable/ic_menu_compass"
+        android:title="Introspection" />
+    <item
         android:id="@+id/CallScheduleFragment"
         android:icon="@drawable/ic_call"
         android:title="Schedule" />

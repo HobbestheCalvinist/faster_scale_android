@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,8 +6,8 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.databinding.ItemCallHeaderBinding
-import com.example.myapplication.databinding.ItemCallScheduleBinding
+import com.fasterscale.app.databinding.ItemCallHeaderBinding
+import com.fasterscale.app.databinding.ItemCallScheduleBinding
 
 sealed class CallScheduleListItem {
     data class Header(val title: String) : CallScheduleListItem()

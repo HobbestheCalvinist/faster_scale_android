@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.Manifest
 import android.app.TimePickerDialog
@@ -19,7 +19,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myapplication.databinding.FragmentSettingsBinding
+import com.fasterscale.app.databinding.DialogAddContactBinding
+import com.fasterscale.app.databinding.FragmentSettingsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -217,7 +218,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.buttonAddContact.setOnClickListener {
-            checkPermissionAndPickContact()
+            showAddContactDialog()
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -225,6 +226,40 @@ class SettingsFragment : Fragment() {
                 contactAdapter.submitList(contacts)
             }
         }
+    }
+
+    private fun showAddContactDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Add Contact")
+            .setItems(arrayOf("Pick from Contacts", "Enter Manually")) { _, which ->
+                if (which == 0) {
+                    checkPermissionAndPickContact()
+                } else {
+                    showManualContactDialog()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showManualContactDialog() {
+        val dialogBinding = DialogAddContactBinding.inflate(layoutInflater)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("New Contact")
+            .setView(dialogBinding.root)
+            .setPositiveButton("Add") { _, _ ->
+                val name = dialogBinding.edittextContactName.text.toString()
+                val phone = dialogBinding.edittextContactPhone.text.toString()
+                if (name.isNotBlank() && phone.isNotBlank()) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        db.contactDao().insertContact(Contact(name = name, phoneNumber = phone))
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Name and phone are required", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupBackupRestore() {

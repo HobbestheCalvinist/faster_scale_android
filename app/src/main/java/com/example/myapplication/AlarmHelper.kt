@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.app.AlarmManager
 import android.app.PendingIntent

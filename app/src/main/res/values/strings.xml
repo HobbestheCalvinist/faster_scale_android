@@ -7,6 +7,7 @@
     <string name="history_fragment_label">History</string>
     <string name="settings_fragment_label">Settings</string>
     <string name="call_schedule_fragment_label">Call Schedule</string>
+    <string name="introspection_fragment_label">Introspection</string>
     <string name="next">Next</string>
     <string name="previous">Previous</string>
 
@@ -14,6 +15,7 @@
     <string name="calendar_title">Check-in Calendar</string>
     <string name="history_title">Check-in History</string>
     <string name="call_schedule_title">Call Schedule</string>
+    <string name="introspection_title">Introspection</string>
 
     <string name="faster_description">Select where you are on the FASTER scale today:</string>
     <string name="scale_restoration">Restoration</string>
@@ -48,6 +50,11 @@
     <string name="delete_confirmation_message">Are you sure you want to delete the check-in for %1$s?</string>
 
     <string name="label_behaviors">Common Behaviors (Tap to add to notes):</string>
+    <string name="label_behaviors_header">Common Behaviors</string>
+    <string name="label_question_lied">Have you lied today?</string>
+    <string name="label_question_commitments">Working commitments?</string>
+    <string name="label_lied_today">Lied Today</string>
+    <string name="label_working_commitments">Working Commitments</string>
 
     <!-- FASTER Scale Descriptions -->
     <string name="desc_restoration">Accepting life on God’s terms, with trust, grace, mercy, vulnerability, and gratitude.</string>

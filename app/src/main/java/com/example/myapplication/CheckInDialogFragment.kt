@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,8 +10,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
-import com.example.myapplication.databinding.DialogCheckInBinding
-import com.example.myapplication.databinding.ItemCheckInCallBinding
+import com.fasterscale.app.databinding.DialogCheckInBinding
+import com.fasterscale.app.databinding.ItemCheckInCallBinding
 import com.google.android.material.chip.Chip
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.flow.firstOrNull
@@ -68,6 +68,7 @@ class CheckInDialogFragment : DialogFragment() {
         binding.textviewDialogTitle.text = getString(R.string.check_in_title_format, dateFormatter.format(selectedDate.time))
 
         setupDropdown()
+        setupCollapsibleBehaviors()
         loadExistingCheckIn()
 
         binding.buttonSave.setOnClickListener {
@@ -92,9 +93,24 @@ class CheckInDialogFragment : DialogFragment() {
         }
     }
 
+    private fun setupCollapsibleBehaviors() {
+        binding.layoutBehaviorsHeader.setOnClickListener {
+            val isExpanded = binding.layoutBehaviorsContent.visibility == View.VISIBLE
+            if (isExpanded) {
+                binding.layoutBehaviorsContent.visibility = View.GONE
+                binding.imageExpandBehaviors.animate().rotation(0f).start()
+            } else {
+                binding.layoutBehaviorsContent.visibility = View.VISIBLE
+                binding.imageExpandBehaviors.animate().rotation(180f).start()
+            }
+        }
+    }
+
     private fun updateBehaviorsSection(scaleOption: String) {
         val context = context ?: return
-        binding.layoutBehaviorsSection.visibility = View.VISIBLE
+        // Keep header visible, but content depends on manual expansion OR we can auto-expand on selection if we want
+        // For now, let's just make sure the header is visible if a scale is selected
+        binding.layoutBehaviorsHeader.visibility = View.VISIBLE
         binding.chipgroupBehaviors.removeAllViews()
 
         val behaviorsResId = when {
@@ -223,6 +239,8 @@ class CheckInDialogFragment : DialogFragment() {
                             b.edittextDescription.setText(checkIn.description)
                             updateBehaviorsSection(checkIn.scaleOption)
                         }
+                        b.switchLied.isChecked = checkIn.liedToday
+                        b.switchCommitments.isChecked = checkIn.workingCommitments
                         existingCompletedIds = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }.toSet()
                     }
                     checkScheduledCalls()
@@ -250,6 +268,9 @@ class CheckInDialogFragment : DialogFragment() {
         val completedIdsString = completedIds.joinToString(",")
 
         val firstCheckedId = completedIds.firstOrNull()
+        
+        val liedToday = binding.switchLied.isChecked
+        val workingCommitments = binding.switchCommitments.isChecked
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -264,7 +285,9 @@ class CheckInDialogFragment : DialogFragment() {
                         description = description, 
                         callMade = callMade,
                         isInboundCall = finalIsInbound,
-                        completedScheduleIds = completedIdsString
+                        completedScheduleIds = completedIdsString,
+                        liedToday = liedToday,
+                        workingCommitments = workingCommitments
                     )
                 } else {
                     CheckIn(
@@ -273,7 +296,9 @@ class CheckInDialogFragment : DialogFragment() {
                         description = description, 
                         callMade = callMade,
                         isInboundCall = finalIsInbound,
-                        completedScheduleIds = completedIdsString
+                        completedScheduleIds = completedIdsString,
+                        liedToday = liedToday,
+                        workingCommitments = workingCommitments
                     )
                 }
 

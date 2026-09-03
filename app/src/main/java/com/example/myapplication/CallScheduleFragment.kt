@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.app.TimePickerDialog
 import android.content.DialogInterface
@@ -15,8 +15,8 @@ import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myapplication.databinding.DialogAddEditCallScheduleBinding
-import com.example.myapplication.databinding.FragmentCallScheduleBinding
+import com.fasterscale.app.databinding.DialogAddEditCallScheduleBinding
+import com.fasterscale.app.databinding.FragmentCallScheduleBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch

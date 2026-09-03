@@ -40,13 +40,64 @@
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- New Toggles Section -->
         <LinearLayout
-            android:id="@+id/layout_behaviors_section"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:orientation="vertical">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_lied"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Have you lied today?"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingVertical="8dp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_commitments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Working commitments?"
+                android:textAppearance="?attr/textAppearanceBodyLarge"
+                android:paddingVertical="8dp" />
+        </LinearLayout>
+
+        <!-- Collapsible Behaviors Section -->
+        <LinearLayout
+            android:id="@+id/layout_behaviors_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground"
+            android:paddingVertical="8dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Common Behaviors"
+                android:textAppearance="?attr/textAppearanceTitleMedium" />
+
+            <ImageView
+                android:id="@+id/image_expand_behaviors"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@android:drawable/arrow_down_float" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_behaviors_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone"
+            tools:visibility="visible">
 
             <TextView
                 android:layout_width="match_parent"

@@ -1,12 +1,12 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.databinding.ItemHistoryBinding
-import com.example.myapplication.databinding.ItemHistoryHeaderBinding
+import com.fasterscale.app.databinding.ItemHistoryBinding
+import com.fasterscale.app.databinding.ItemHistoryHeaderBinding
 
 sealed class HistoryListItem {
     data class Header(val title: String) : HistoryListItem()
