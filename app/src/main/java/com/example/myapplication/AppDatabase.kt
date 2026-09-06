@@ -11,12 +11,13 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class], version = 14, exportSchema = false)
+@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class, CustomFeeling::class], version = 15, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun checkInDao(): CheckInDao
     abstract fun contactDao(): ContactDao
     abstract fun callScheduleDao(): CallScheduleDao
     abstract fun commitmentDao(): CommitmentDao
+    abstract fun customFeelingDao(): CustomFeelingDao
 
     companion object {
         @Volatile

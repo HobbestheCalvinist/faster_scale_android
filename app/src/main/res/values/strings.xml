@@ -261,4 +261,19 @@
     <string name="about_attribution_label">Inspiration</string>
     <string name="about_attribution_text">Inspired by the work done by the Genesis Process.</string>
     <string name="about_genesis_website">Visit Genesis Process</string>
+
+    <!-- Introspection Redesign -->
+    <string name="how_are_you_feeling">How are you feeling?</string>
+    <string name="how_strongly_feeling">How strongly are you feeling this?</string>
+    <string name="intensity_low">1 - Very low</string>
+    <string name="intensity_high">10 - Extremely strong</string>
+    <string name="checkin_summary">Check-in Summary</string>
+    <string name="summary_feeling_label">Feeling: %1$s</string>
+    <string name="summary_intensity_label">Intensity: %1$d / 10</string>
+    <string name="action_change_feeling">Change Feeling</string>
+    <string name="action_continue_to_faster">Continue to FASTER</string>
+    <string name="faster_scale_reference">FASTER Scale Reference</string>
+    <string name="add_custom_feeling">Add Custom Feeling</string>
+    <string name="label_feeling_meaning">What does this emoji mean to you?</string>
+    <string name="hint_feeling_meaning">e.g. Hopeful, Anxious, etc.</string>
 </resources>

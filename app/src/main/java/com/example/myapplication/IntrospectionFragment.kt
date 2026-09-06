@@ -1,24 +1,36 @@
 package com.fasterscale.app
 
-import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import android.graphics.RectF
 import android.os.Bundle
-import android.util.AttributeSet
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.CheckBox
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.fasterscale.app.databinding.FragmentIntrospectionBinding
-import kotlin.math.atan2
+import com.fasterscale.app.databinding.ItemFeelingBinding
+import com.fasterscale.app.R
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class IntrospectionFragment : Fragment() {
 
     private var _binding: FragmentIntrospectionBinding? = null
     private val binding get() = _binding!!
+
+    private var selectedFeeling: IntrospectionFeeling? = null
+    private var selectedIntensity: Int = 3
+    private var determinedLevel: FasterScaleLevel? = null
+    private val behaviorsTally = mutableMapOf<String, Boolean>()
+    
+    private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,185 +44,218 @@ class IntrospectionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupFeelingsWheel()
-        setupBehaviorsWheel()
+        setupSteps()
+        setupFeelingsGrid()
+        setupIntensitySlider()
+        setupQuestionsButtons()
+        setupReviewButtons()
     }
 
-    private fun setupFeelingsWheel() {
-        val feelingsWheel = SemiCircleWheelView(requireContext()).apply {
-            val categories = listOf(
-                WheelItem("Joyful", Color.parseColor("#FFEB3B"), listOf("Happy", "Cheerful", "Proud")),
-                WheelItem("Peaceful", Color.parseColor("#4CAF50"), listOf("Content", "Relaxed", "Serene")),
-                WheelItem("Powerful", Color.parseColor("#FF9800"), listOf("Confident", "Strong", "Valued")),
-                WheelItem("Sad", Color.parseColor("#2196F3"), listOf("Lonely", "Hurt", "Depressed")),
-                WheelItem("Mad", Color.parseColor("#F44336"), listOf("Angry", "Frustrated", "Hateful")),
-                WheelItem("Scared", Color.parseColor("#9C27B0"), listOf("Anxious", "Insecure", "Helpless"))
-            )
-            setItems(categories)
-            onItemSelected = { item, subItem ->
-                binding.selectedDetailsTitle.text = "Feeling: ${subItem ?: item.label}"
-                binding.selectedDetailsContent.text = if (subItem != null) {
-                    "You are feeling ${subItem.lowercase()} within the ${item.label} category."
-                } else {
-                    "Explore the ${item.label} category to find a more specific emotion."
-                }
-            }
-        }
-        binding.feelingsWheelContainer.addView(feelingsWheel)
+    private fun setupSteps() {
+        binding.wheelStepContainer.visibility = View.VISIBLE
+        binding.intensityStepContainer.visibility = View.GONE
+        binding.questionsStepContainer.visibility = View.GONE
+        binding.reviewStepContainer.visibility = View.GONE
+        binding.sectionTitle.text = getString(R.string.how_are_you_feeling)
     }
 
-    private fun setupBehaviorsWheel() {
-        val behaviorsWheel = SemiCircleWheelView(requireContext()).apply {
-            val categories = listOf(
-                WheelItem("Restoration", Color.parseColor("#1B5E20"), listOf("Honest", "Accountable", "Grateful")),
-                WheelItem("Forgetting", Color.parseColor("#827717"), listOf("Denial", "Isolating", "Bored")),
-                WheelItem("Anxiety", Color.parseColor("#F9A825"), listOf("Worry", "Fearful", "Stressed")),
-                WheelItem("Speeding", Color.parseColor("#E65100"), listOf("Busy", "Driven", "Racing")),
-                WheelItem("Ticked Off", Color.parseColor("#BF360C"), listOf("Angry", "Resentful", "Blaming")),
-                WheelItem("Exhausted", Color.parseColor("#B71C1C"), listOf("Numb", "Overwhelmed", "Depressed")),
-                WheelItem("Relapse", Color.parseColor("#4A0000"), listOf("Secretive", "Shameful", "Giving up"))
-            )
-            setItems(categories)
-            onItemSelected = { item, subItem ->
-                binding.selectedDetailsTitle.text = "Behavior: ${subItem ?: item.label}"
-                binding.selectedDetailsContent.text = if (subItem != null) {
-                    "This behavior is part of the ${item.label} stage of the FASTER scale."
-                } else {
-                    "Select a specific behavior in ${item.label}."
+    private fun setupFeelingsGrid() {
+        // Loads emojis and their potential FASTER categories from the configurable Provider
+        val feelings = FasterScaleProvider.getFeelings()
+        val adapter = FeelingsAdapter(feelings) { feeling ->
+            selectedFeeling = feeling
+            transitionToIntensityStep()
+        }
+        binding.feelingsGrid.layoutManager = GridLayoutManager(requireContext(), 4)
+        binding.feelingsGrid.adapter = adapter
+
+        binding.buttonAddFeeling.setOnClickListener {
+            showAddFeelingDialog()
+        }
+    }
+
+    private fun showAddFeelingDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_custom_feeling, null)
+        val emojiEdit = dialogView.findViewById<EditText>(R.id.edit_emoji)
+        val meaningEdit = dialogView.findViewById<EditText>(R.id.edit_meaning)
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.add_custom_feeling)
+            .setView(dialogView)
+            .setPositiveButton(R.string.action_save) { _, _ ->
+                val emoji = emojiEdit.text.toString().trim()
+                val meaning = meaningEdit.text.toString().trim()
+                if (emoji.isNotEmpty() && meaning.isNotEmpty()) {
+                    // Default custom feelings to Restoration for the purpose of the mapping logic
+                    selectedFeeling = IntrospectionFeeling(emoji, meaning, listOf("restoration"))
+                    transitionToIntensityStep()
                 }
             }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
+    private fun transitionToIntensityStep() {
+        binding.wheelStepContainer.visibility = View.GONE
+        binding.intensityStepContainer.visibility = View.VISIBLE
+        binding.sectionTitle.text = getString(R.string.how_strongly_feeling)
+        
+        binding.selectedFeelingEmoji.text = selectedFeeling?.emoji
+        binding.selectedFeelingLabel.text = selectedFeeling?.label
+        
+        binding.scrollView.smoothScrollTo(0, 0)
+    }
+
+    private fun setupIntensitySlider() {
+        binding.intensitySlider.addOnChangeListener { _, value, _ ->
+            selectedIntensity = value.toInt()
+            binding.intensityValueDisplay.text = selectedIntensity.toString()
         }
-        binding.behaviorsWheelContainer.addView(behaviorsWheel)
+
+        binding.buttonIntensityDone.setOnClickListener {
+            val feeling = selectedFeeling ?: return@setOnClickListener
+            if (feeling.potentialLevels.size > 1) {
+                transitionToQuestionsStep()
+            } else {
+                // If the feeling only maps to one category, skip the behavior questions
+                val levels = FasterScaleProvider.getLevels(requireContext())
+                determinedLevel = levels.find { it.id == feeling.potentialLevels.first() }
+                transitionToReviewStep()
+            }
+        }
+    }
+
+    private fun transitionToQuestionsStep() {
+        binding.intensityStepContainer.visibility = View.GONE
+        binding.questionsStepContainer.visibility = View.VISIBLE
+        binding.sectionTitle.text = getString(R.string.label_behaviors_header)
+        
+        binding.questionsList.removeAllViews()
+        behaviorsTally.clear()
+
+        val feeling = selectedFeeling ?: return
+        val allLevels = FasterScaleProvider.getLevels(requireContext())
+        val potentialLevels = allLevels.filter { feeling.potentialLevels.contains(it.id) }
+        
+        // Collate unique behaviors from all categories this feeling might belong to
+        val allBehaviors = potentialLevels.flatMap { level -> 
+            level.behaviors
+        }.distinct()
+
+        allBehaviors.forEach { behavior ->
+            val checkBox = CheckBox(requireContext()).apply {
+                text = behavior
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 16)
+                }
+                setOnCheckedChangeListener { _, isChecked ->
+                    behaviorsTally[behavior] = isChecked
+                }
+            }
+            binding.questionsList.addView(checkBox)
+        }
+
+        binding.scrollView.smoothScrollTo(0, 0)
+    }
+
+    private fun setupQuestionsButtons() {
+        binding.buttonQuestionsDone.setOnClickListener {
+            calculateDeterminedLevel()
+            transitionToReviewStep()
+        }
+    }
+
+    private fun calculateDeterminedLevel() {
+        val feeling = selectedFeeling ?: return
+        val allLevels = FasterScaleProvider.getLevels(requireContext())
+        val potentialLevels = allLevels.filter { feeling.potentialLevels.contains(it.id) }
+        
+        // Tally which category has the highest number of checked behaviors
+        var bestLevel: FasterScaleLevel? = null
+        var maxChecked = -1
+
+        potentialLevels.forEach { level ->
+            val checkedCount = level.behaviors.count { behaviorsTally[it] == true }
+            if (checkedCount > maxChecked) {
+                maxChecked = checkedCount
+                bestLevel = level
+            }
+        }
+        
+        // Fallback to the first potential category if nothing is checked
+        determinedLevel = bestLevel ?: potentialLevels.firstOrNull() ?: allLevels.first()
+    }
+
+    private fun transitionToReviewStep() {
+        binding.intensityStepContainer.visibility = View.GONE
+        binding.questionsStepContainer.visibility = View.GONE
+        binding.reviewStepContainer.visibility = View.VISIBLE
+        binding.sectionTitle.text = getString(R.string.checkin_summary)
+        
+        binding.summaryFeelingText.text = "${selectedFeeling?.emoji} ${selectedFeeling?.label}"
+        binding.summaryIntensityText.text = "$selectedIntensity / 5"
+        binding.summaryScaleText.text = determinedLevel?.title ?: "Not determined"
+        
+        binding.scrollView.smoothScrollTo(0, 0)
+    }
+
+    private fun setupReviewButtons() {
+        binding.buttonChangeFeeling.setOnClickListener {
+            setupSteps()
+        }
+
+        binding.buttonConfirmContinue.setOnClickListener {
+            saveIntrospectionAndContinue()
+        }
+    }
+
+    private fun saveIntrospectionAndContinue() {
+        val db = AppDatabase.getDatabase(requireContext())
+        val date = dateFormatter.format(Date())
+        
+        lifecycleScope.launch {
+            val existing = db.checkInDao().getCheckInByDate(date)
+            val newCheckIn = (existing ?: CheckIn(date = date)).copy(
+                feeling = selectedFeeling?.label ?: "",
+                feelingEmoji = selectedFeeling?.emoji ?: "",
+                feelingIntensity = selectedIntensity,
+                scaleOption = determinedLevel?.title ?: ""
+            )
+            db.checkInDao().insertCheckIn(newCheckIn)
+            
+            Toast.makeText(requireContext(), R.string.save_checkin, Toast.LENGTH_SHORT).show()
+            
+            activity?.onBackPressedDispatcher?.onBackPressed()
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
-}
 
-data class WheelItem(
-    val label: String,
-    val color: Int,
-    val subItems: List<String> = emptyList()
-)
+    class FeelingsAdapter(
+        private val items: List<IntrospectionFeeling>,
+        private val onItemClick: (IntrospectionFeeling) -> Unit
+    ) : RecyclerView.Adapter<FeelingsAdapter.ViewHolder>() {
 
-class SemiCircleWheelView @JvmOverloads constructor(
-    context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr) {
+        class ViewHolder(val binding: ItemFeelingBinding) : RecyclerView.ViewHolder(binding.root)
 
-    private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.BLACK
-        textAlign = Paint.Align.CENTER
-        textSize = 40f
-    }
-    private val rect = RectF()
-    private var items = listOf<WheelItem>()
-    private var selectedIndex = -1
-    private var drillingIn = false
-    
-    var onItemSelected: ((WheelItem, String?) -> Unit)? = null
-
-    fun setItems(newItems: List<WheelItem>) {
-        items = newItems
-        invalidate()
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        if (items.isEmpty()) return
-
-        val width = width.toFloat()
-        val height = height.toFloat()
-        val radius = width.coerceAtMost(height * 2) / 2 * 0.9f
-        rect.set(width / 2 - radius, height - radius, width / 2 + radius, height + radius)
-
-        val sweepAngle = 180f / items.size
-        
-        if (!drillingIn) {
-            items.forEachIndexed { index, item ->
-                paint.color = item.color
-                paint.alpha = if (selectedIndex == index) 255 else 180
-                canvas.drawArc(rect, 180f + index * sweepAngle, sweepAngle, true, paint)
-                
-                // Draw Text
-                val angle = 180f + index * sweepAngle + sweepAngle / 2
-                val textRadius = radius * 0.7f
-                val x = (width / 2 + textRadius * kotlin.math.cos(Math.toRadians(angle.toDouble()))).toFloat()
-                val y = (height + textRadius * kotlin.math.sin(Math.toRadians(angle.toDouble()))).toFloat()
-                
-                canvas.save()
-                canvas.rotate(angle + 90, x, y)
-                canvas.drawText(item.label, x, y, textPaint)
-                canvas.restore()
-            }
-        } else if (selectedIndex != -1) {
-            val item = items[selectedIndex]
-            val subItems = item.subItems
-            val subSweep = 180f / subItems.size
-            
-            subItems.forEachIndexed { index, subLabel ->
-                paint.color = item.color
-                paint.alpha = 255 - (index * 20)
-                canvas.drawArc(rect, 180f + index * subSweep, subSweep, true, paint)
-
-                val angle = 180f + index * subSweep + subSweep / 2
-                val textRadius = radius * 0.7f
-                val x = (width / 2 + textRadius * kotlin.math.cos(Math.toRadians(angle.toDouble()))).toFloat()
-                val y = (height + textRadius * kotlin.math.sin(Math.toRadians(angle.toDouble()))).toFloat()
-
-                canvas.save()
-                canvas.rotate(angle + 90, x, y)
-                canvas.drawText(subLabel, x, y, textPaint)
-                canvas.restore()
-            }
-            
-            // Draw a "back" button in the center
-            paint.color = Color.LTGRAY
-            canvas.drawCircle(width / 2, height, radius * 0.3f, paint)
-            canvas.drawText("Back", width / 2, height - 10, textPaint)
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val binding = ItemFeelingBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(binding)
         }
-    }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (event.action == MotionEvent.ACTION_DOWN) {
-            val x = event.x - width / 2
-            val y = event.y - height
-            val dist = kotlin.math.sqrt(x * x + y * y)
-            val radius = width.coerceAtMost(height * 2) / 2 * 0.9f
-
-            if (dist <= radius) {
-                if (drillingIn && dist < radius * 0.3f) {
-                    drillingIn = false
-                    selectedIndex = -1
-                    invalidate()
-                    return true
-                }
-
-                var angle = Math.toDegrees(atan2(y.toDouble(), x.toDouble()))
-                if (angle < 0) angle += 360
-                
-                if (angle in 180.0..360.0) {
-                    val relativeAngle = angle - 180
-                    if (!drillingIn) {
-                        val sweep = 180f / items.size
-                        val index = (relativeAngle / sweep).toInt().coerceIn(0, items.size - 1)
-                        selectedIndex = index
-                        drillingIn = true
-                        onItemSelected?.invoke(items[selectedIndex], null)
-                        invalidate()
-                    } else {
-                        val subItems = items[selectedIndex].subItems
-                        val sweep = 180f / subItems.size
-                        val index = (relativeAngle / sweep).toInt().coerceIn(0, subItems.size - 1)
-                        onItemSelected?.invoke(items[selectedIndex], subItems[index])
-                        invalidate()
-                    }
-                }
-            }
-            return true
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            val item = items[position]
+            holder.binding.feelingEmoji.text = item.emoji
+            holder.binding.feelingLabel.text = item.label
+            holder.itemView.setOnClickListener { onItemClick(item) }
         }
-        return super.onTouchEvent(event)
+
+        override fun getItemCount() = items.size
     }
 }

@@ -8,14 +8,14 @@ plugins {
 android {
     // REVERTED to match your actual folder/package structure
     namespace = "com.fasterscale.app"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         // This is the UNIQUE ID for the Play Store.
         // It stays as your custom domain.
         applicationId = "com.fasterscale.app"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 3 // Incremented again to ensure it is fresh
         versionName = "1.0.2"
 

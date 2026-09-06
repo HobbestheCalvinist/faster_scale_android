@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Select an emoji"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/edit_emoji"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Type or paste emoji"
+        android:inputType="textShortMessage"
+        android:maxLength="2"
+        android:gravity="center"
+        android:textSize="32sp"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="What does it mean to you?"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:layout_marginBottom="8dp"/>
+
+    <EditText
+        android:id="@+id/edit_meaning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="e.g. Hopeful, Grateful, etc."
+        android:inputType="textCapSentences"
+        android:layout_marginBottom="8dp"/>
+
+</LinearLayout>
