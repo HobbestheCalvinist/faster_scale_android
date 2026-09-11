@@ -1,26 +1,58 @@
 package com.fasterscale.app
 
+import android.Manifest
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import android.os.PowerManager
+import androidx.core.content.ContextCompat
 import java.util.*
 
 object AlarmHelper {
 
+    fun canScheduleExact(context: Context): Boolean {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            alarmManager.canScheduleExactAlarms()
+        } else {
+            true
+        }
+    }
+
+    fun isNotificationPermissionGranted(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    fun isBatteryOptimizationIgnored(context: Context): Boolean {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        return pm.isIgnoringBatteryOptimizations(context.packageName)
+    }
+
     fun scheduleCallAlarm(context: Context, schedule: CallSchedule) {
+        val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("phone_call_reminder_enabled", false)) return
         if (schedule.time == "Not set" || schedule.time.isBlank()) return
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         
-        // Calculate alarm time (15 minutes before scheduled time)
-        val calendar = getCalendarForSchedule(schedule) ?: return
-        calendar.add(Calendar.MINUTE, -15)
+        val eventCalendar = getCalendarForSchedule(schedule) ?: return
+        val reminderCalendar = (eventCalendar.clone() as Calendar).apply {
+            add(Calendar.MINUTE, -15)
+        }
 
-        // If time has already passed for this week, schedule for next week
-        if (calendar.timeInMillis <= System.currentTimeMillis()) {
-            calendar.add(Calendar.WEEK_OF_YEAR, 1)
+        if (reminderCalendar.timeInMillis <= System.currentTimeMillis()) {
+            if (eventCalendar.timeInMillis <= System.currentTimeMillis()) {
+                reminderCalendar.add(Calendar.WEEK_OF_YEAR, 1)
+            } else {
+                reminderCalendar.timeInMillis = System.currentTimeMillis() + 1000
+            }
         }
 
         val intent = Intent(context, CallAlarmReceiver::class.java).apply {
@@ -32,33 +64,22 @@ object AlarmHelper {
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            schedule.id,
+            2000 + schedule.id,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        setExactAlarm(alarmManager, calendar.timeInMillis, pendingIntent)
-    }
-
-    fun cancelCallAlarm(context: Context, scheduleId: Int) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, CallAlarmReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            scheduleId,
-            intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (pendingIntent != null) {
-            alarmManager.cancel(pendingIntent)
-        }
+        setExactAlarm(alarmManager, reminderCalendar.timeInMillis, pendingIntent)
     }
 
     fun scheduleDailyReminder(context: Context, hour: Int, minute: Int) {
+        val prefs = context.getSharedPreferences("prefs", Context.MODE_PRIVATE)
+        if (!prefs.getBoolean("reminder_enabled", false)) return
+
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, ReminderReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
-            context, 100, intent,
+            context, 1000, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -75,18 +96,6 @@ object AlarmHelper {
         setExactAlarm(alarmManager, calendar.timeInMillis, pendingIntent)
     }
 
-    fun cancelDailyReminder(context: Context) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, ReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context, 100, intent,
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (pendingIntent != null) {
-            alarmManager.cancel(pendingIntent)
-        }
-    }
-
     private fun setExactAlarm(alarmManager: AlarmManager, triggerAtMillis: Long, pendingIntent: PendingIntent) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager.canScheduleExactAlarms()) {
@@ -96,6 +105,30 @@ object AlarmHelper {
             }
         } else {
             alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMillis, pendingIntent)
+        }
+    }
+
+    fun cancelCallAlarm(context: Context, scheduleId: Int) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, CallAlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, 2000 + scheduleId, intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
+        }
+    }
+
+    fun cancelDailyReminder(context: Context) {
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        val intent = Intent(context, ReminderReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            context, 1000, intent,
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+        )
+        if (pendingIntent != null) {
+            alarmManager.cancel(pendingIntent)
         }
     }
 
@@ -115,7 +148,6 @@ object AlarmHelper {
                 else -> Calendar.MONDAY
             }
 
-            // Parse time string like "10:30 AM"
             val time = schedule.time.uppercase()
             val isPm = time.endsWith("PM")
             val timeParts = time.replace("AM", "").replace("PM", "").trim().split(":")

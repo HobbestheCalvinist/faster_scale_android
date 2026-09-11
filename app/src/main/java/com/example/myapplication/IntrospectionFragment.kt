@@ -197,7 +197,7 @@ class IntrospectionFragment : Fragment() {
         
         binding.summaryFeelingText.text = "${selectedFeeling?.emoji} ${selectedFeeling?.label}"
         binding.summaryIntensityText.text = "$selectedIntensity / 5"
-        binding.summaryScaleText.text = determinedLevel?.title ?: "Not determined"
+        binding.summaryScaleText.text = determinedLevel?.title ?: ""
         
         binding.scrollView.smoothScrollTo(0, 0)
     }
@@ -225,6 +225,9 @@ class IntrospectionFragment : Fragment() {
                 scaleOption = determinedLevel?.title ?: ""
             )
             db.checkInDao().insertCheckIn(newCheckIn)
+            
+            // Trigger widget update immediately
+            CalendarWidget.updateAllWidgets(requireContext())
             
             Toast.makeText(requireContext(), R.string.save_checkin, Toast.LENGTH_SHORT).show()
             

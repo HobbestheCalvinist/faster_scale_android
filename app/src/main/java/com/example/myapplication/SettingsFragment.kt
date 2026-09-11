@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,6 +58,13 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        updatePermissionStatus()
+        if (isGranted) {
+            Toast.makeText(requireContext(), "Notifications enabled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private val createBackupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri: Uri? ->
         uri?.let { performBackup(it) }
     }
@@ -77,12 +86,83 @@ class SettingsFragment : Fragment() {
         sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
         db = AppDatabase.getDatabase(requireContext())
 
+        setupPermissionSection()
         setupNotificationSettings()
         setupStartDaySettings()
         setupShareSettings()
         setupDemoMode()
         setupContactSettings()
         setupBackupRestore()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updatePermissionStatus()
+    }
+
+    private fun setupPermissionSection() {
+        binding.buttonFixNotifications.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", requireContext().packageName, null)
+                }
+                startActivity(intent)
+            }
+        }
+
+        binding.buttonFixAlarms.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    data = Uri.fromParts("package", requireContext().packageName, null)
+                }
+                startActivity(intent)
+            }
+        }
+
+        binding.buttonFixBattery.setOnClickListener {
+            val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            }
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                // Fallback to general settings
+                startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+            }
+        }
+        
+        updatePermissionStatus()
+    }
+
+    private fun updatePermissionStatus() {
+        if (_binding == null) return
+        val context = context ?: return
+        
+        // Notifications
+        val notificationsGranted = AlarmHelper.isNotificationPermissionGranted(context)
+        binding.textStatusNotifications.text = "Status: ${if (notificationsGranted) "Allowed" else "Blocked"}"
+        binding.buttonFixNotifications.visibility = if (notificationsGranted) View.GONE else View.VISIBLE
+        binding.iconPermissionNotifications.setImageResource(
+            if (notificationsGranted) android.R.drawable.presence_online else android.R.drawable.presence_busy
+        )
+
+        // Exact Alarms
+        val alarmsGranted = AlarmHelper.canScheduleExact(context)
+        binding.textStatusAlarms.text = "Status: ${if (alarmsGranted) "Allowed" else "Restricted"}"
+        binding.buttonFixAlarms.visibility = if (alarmsGranted) View.GONE else View.VISIBLE
+        binding.iconPermissionAlarms.setImageResource(
+            if (alarmsGranted) android.R.drawable.presence_online else android.R.drawable.presence_busy
+        )
+
+        // Battery Optimization
+        val batteryIgnored = AlarmHelper.isBatteryOptimizationIgnored(context)
+        binding.textStatusBattery.text = "Status: ${if (batteryIgnored) "Not Optimized (Good)" else "Optimized (May delay alerts)"}"
+        binding.buttonFixBattery.visibility = if (batteryIgnored) View.GONE else View.VISIBLE
+        binding.iconPermissionBattery.setImageResource(
+            if (batteryIgnored) android.R.drawable.presence_online else android.R.drawable.presence_busy
+        )
     }
 
     private fun setupNotificationSettings() {
@@ -97,13 +177,17 @@ class SettingsFragment : Fragment() {
         binding.switchReminder.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("reminder_enabled", isChecked).apply()
             if (isChecked) {
-                AlarmHelper.scheduleDailyReminder(requireContext(), hour, minute)
+                val h = sharedPreferences.getInt("reminder_hour", 8)
+                val m = sharedPreferences.getInt("reminder_minute", 0)
+                AlarmHelper.scheduleDailyReminder(requireContext(), h, m)
             } else {
                 AlarmHelper.cancelDailyReminder(requireContext())
             }
         }
 
         binding.buttonChangeTime.setOnClickListener {
+            val hCurrent = sharedPreferences.getInt("reminder_hour", 8)
+            val mCurrent = sharedPreferences.getInt("reminder_minute", 0)
             TimePickerDialog(requireContext(), { _, h, m ->
                 sharedPreferences.edit()
                     .putInt("reminder_hour", h)
@@ -113,7 +197,7 @@ class SettingsFragment : Fragment() {
                 if (binding.switchReminder.isChecked) {
                     AlarmHelper.scheduleDailyReminder(requireContext(), h, m)
                 }
-            }, hour, minute, false).show()
+            }, hCurrent, mCurrent, false).show()
         }
 
         // Phone Call Reminder
@@ -122,7 +206,10 @@ class SettingsFragment : Fragment() {
         binding.switchPhoneCallReminder.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("phone_call_reminder_enabled", isChecked).apply()
             if (isChecked) {
+                rescheduleAllCallAlarms()
                 Toast.makeText(requireContext(), "Phone call reminders enabled", Toast.LENGTH_SHORT).show()
+            } else {
+                cancelAllCallAlarms()
             }
         }
 
@@ -142,6 +229,24 @@ class SettingsFragment : Fragment() {
             }
             requireContext().sendBroadcast(intent)
             Toast.makeText(requireContext(), "Test call alert sent", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun rescheduleAllCallAlarms() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val schedules = db.callScheduleDao().getAllSchedules().first()
+            schedules.forEach { schedule ->
+                AlarmHelper.scheduleCallAlarm(requireContext(), schedule)
+            }
+        }
+    }
+
+    private fun cancelAllCallAlarms() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val schedules = db.callScheduleDao().getAllSchedules().first()
+            schedules.forEach { schedule ->
+                AlarmHelper.cancelCallAlarm(requireContext(), schedule.id)
+            }
         }
     }
 

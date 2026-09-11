@@ -289,6 +289,8 @@ class HistoryFragment : Fragment() {
             .setPositiveButton(R.string.menu_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     db.checkInDao().deleteCheckIn(checkIn)
+                    // Update Widget immediately
+                    CalendarWidget.updateAllWidgets(requireContext())
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

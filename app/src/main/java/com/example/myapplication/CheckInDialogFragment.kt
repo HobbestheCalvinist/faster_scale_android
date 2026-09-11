@@ -294,7 +294,7 @@ class CheckInDialogFragment : DialogFragment() {
                         date = date, 
                         scaleOption = scaleOption, 
                         description = description, 
-                        callMade = callMade,
+                        callMade = callMade, 
                         isInboundCall = finalIsInbound,
                         completedScheduleIds = completedIdsString,
                         liedToday = liedToday,
@@ -303,8 +303,11 @@ class CheckInDialogFragment : DialogFragment() {
                 }
 
                 currentDb.checkInDao().insertCheckIn(checkIn)
-                context?.let {
-                    Toast.makeText(it, "Check-in saved!", Toast.LENGTH_SHORT).show()
+                
+                // Update Widget immediately
+                context?.let { ctx ->
+                    CalendarWidget.updateAllWidgets(ctx)
+                    Toast.makeText(ctx, "Check-in saved!", Toast.LENGTH_SHORT).show()
                 }
                 dismiss()
             } catch (e: Exception) {

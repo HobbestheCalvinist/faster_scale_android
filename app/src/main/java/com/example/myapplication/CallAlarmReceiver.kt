@@ -9,15 +9,44 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 
 class CallAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        val pendingResult = goAsync()
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
         val contactName = intent.getStringExtra("contactName") ?: "Someone"
         val contactPhone = intent.getStringExtra("contactPhone") ?: ""
-        val scheduleId = intent.getIntOf("scheduleId", 0)
+        val scheduleId = intent.getIntExtra("scheduleId", 0)
         val isInbound = intent.getBooleanExtra("isInbound", false)
 
         showNotification(context, contactName, contactPhone, scheduleId, isInbound)
+
+        // AUTO-RESCHEDULE: Alarms are one-shot. 
+        // We must schedule the next one for next week immediately.
+        if (scheduleId != 0) {
+            scope.launch {
+                try {
+                    val db = AppDatabase.getDatabase(context)
+                    val allSchedules = db.callScheduleDao().getAllSchedules().firstOrNull()
+                    val currentSchedule = allSchedules?.find { it.id == scheduleId }
+                    
+                    currentSchedule?.let {
+                        // This will calculate the next occurrence (next week) and set a new alarm
+                        AlarmHelper.scheduleCallAlarm(context, it)
+                    }
+                } finally {
+                    pendingResult.finish()
+                }
+            }
+        } else {
+            pendingResult.finish()
+        }
     }
 
     private fun showNotification(context: Context, contactName: String, contactPhone: String, scheduleId: Int, isInbound: Boolean) {
@@ -35,17 +64,15 @@ class CallAlarmReceiver : BroadcastReceiver() {
             manager.createNotificationChannel(channel)
         }
 
-        // Intent to open the app directly to the Call Schedule tab
         val activityIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            putExtra(MainTabsFragment.EXTRA_OPEN_TAB, 2) // Index for Call Schedule tab
+            putExtra(MainTabsFragment.EXTRA_OPEN_TAB, 2)
         }
         val pendingIntent = PendingIntent.getActivity(
             context, scheduleId, activityIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Intent to make the call directly
         val callIntent = Intent(Intent.ACTION_DIAL).apply {
             data = Uri.parse("tel:$contactPhone")
         }
@@ -73,6 +100,4 @@ class CallAlarmReceiver : BroadcastReceiver() {
 
         manager.notify(notificationId, builder.build())
     }
-
-    private fun Intent.getIntOf(name: String, default: Int): Int = getIntExtra(name, default)
 }
