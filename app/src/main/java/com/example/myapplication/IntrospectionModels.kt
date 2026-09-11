@@ -51,20 +51,21 @@ object FasterScaleProvider {
             IntrospectionFeeling("😌", "Peaceful", listOf("restoration")),
             IntrospectionFeeling("🙏", "Grateful", listOf("restoration")),
             
-            // Ambiguous (Can be multiple letters)
+            // Ambiguous (Multiple suggestions)
             IntrospectionFeeling("😎", "Confident", listOf("restoration", "forgetting_priorities")),
             IntrospectionFeeling("🥳", "Excited", listOf("restoration", "speeding_up")),
             IntrospectionFeeling("😴", "Tired", listOf("exhausted", "speeding_up")),
             IntrospectionFeeling("😢", "Sad", listOf("anxiety", "exhausted")),
             IntrospectionFeeling("🏃", "Busy", listOf("speeding_up", "forgetting_priorities")),
-            IntrospectionFeeling("🤥", "Dishonest", listOf("forgetting_priorities", "relapse")),
+            IntrospectionFeeling("😐", "Indifferent", listOf("forgetting_priorities", "exhausted")),
+            IntrospectionFeeling("🤔", "Uncertain", listOf("anxiety", "forgetting_priorities")),
             
-            // Danger Zone
+            // Danger Zone (No Relapse)
             IntrospectionFeeling("😰", "Scared", listOf("anxiety")),
             IntrospectionFeeling("😠", "Mad", listOf("ticked_off")),
             IntrospectionFeeling("🤢", "Sick", listOf("exhausted")),
-            IntrospectionFeeling("😶", "Isolated", listOf("exhausted", "relapse")),
-            IntrospectionFeeling("🔒", "Trapped", listOf("relapse"))
+            IntrospectionFeeling("😶", "Isolated", listOf("exhausted", "anxiety")),
+            IntrospectionFeeling("🤥", "Dishonest", listOf("forgetting_priorities", "ticked_off"))
         )
     }
 }

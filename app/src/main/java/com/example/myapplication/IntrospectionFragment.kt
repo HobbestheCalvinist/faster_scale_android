@@ -7,18 +7,13 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fasterscale.app.databinding.FragmentIntrospectionBinding
 import com.fasterscale.app.databinding.ItemFeelingBinding
 import com.fasterscale.app.R
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
 
 class IntrospectionFragment : Fragment() {
 
@@ -29,8 +24,6 @@ class IntrospectionFragment : Fragment() {
     private var selectedIntensity: Int = 3
     private var determinedLevel: FasterScaleLevel? = null
     private val behaviorsTally = mutableMapOf<String, Boolean>()
-    
-    private val dateFormatter = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -60,7 +53,6 @@ class IntrospectionFragment : Fragment() {
     }
 
     private fun setupFeelingsGrid() {
-        // Loads emojis and their potential FASTER categories from the configurable Provider
         val feelings = FasterScaleProvider.getFeelings()
         val adapter = FeelingsAdapter(feelings) { feeling ->
             selectedFeeling = feeling
@@ -86,7 +78,6 @@ class IntrospectionFragment : Fragment() {
                 val emoji = emojiEdit.text.toString().trim()
                 val meaning = meaningEdit.text.toString().trim()
                 if (emoji.isNotEmpty() && meaning.isNotEmpty()) {
-                    // Default custom feelings to Restoration for the purpose of the mapping logic
                     selectedFeeling = IntrospectionFeeling(emoji, meaning, listOf("restoration"))
                     transitionToIntensityStep()
                 }
@@ -117,7 +108,6 @@ class IntrospectionFragment : Fragment() {
             if (feeling.potentialLevels.size > 1) {
                 transitionToQuestionsStep()
             } else {
-                // If the feeling only maps to one category, skip the behavior questions
                 val levels = FasterScaleProvider.getLevels(requireContext())
                 determinedLevel = levels.find { it.id == feeling.potentialLevels.first() }
                 transitionToReviewStep()
@@ -137,7 +127,6 @@ class IntrospectionFragment : Fragment() {
         val allLevels = FasterScaleProvider.getLevels(requireContext())
         val potentialLevels = allLevels.filter { feeling.potentialLevels.contains(it.id) }
         
-        // Collate unique behaviors from all categories this feeling might belong to
         val allBehaviors = potentialLevels.flatMap { level -> 
             level.behaviors
         }.distinct()
@@ -173,7 +162,6 @@ class IntrospectionFragment : Fragment() {
         val allLevels = FasterScaleProvider.getLevels(requireContext())
         val potentialLevels = allLevels.filter { feeling.potentialLevels.contains(it.id) }
         
-        // Tally which category has the highest number of checked behaviors
         var bestLevel: FasterScaleLevel? = null
         var maxChecked = -1
 
@@ -185,7 +173,6 @@ class IntrospectionFragment : Fragment() {
             }
         }
         
-        // Fallback to the first potential category if nothing is checked
         determinedLevel = bestLevel ?: potentialLevels.firstOrNull() ?: allLevels.first()
     }
 
@@ -205,33 +192,6 @@ class IntrospectionFragment : Fragment() {
     private fun setupReviewButtons() {
         binding.buttonChangeFeeling.setOnClickListener {
             setupSteps()
-        }
-
-        binding.buttonConfirmContinue.setOnClickListener {
-            saveIntrospectionAndContinue()
-        }
-    }
-
-    private fun saveIntrospectionAndContinue() {
-        val db = AppDatabase.getDatabase(requireContext())
-        val date = dateFormatter.format(Date())
-        
-        lifecycleScope.launch {
-            val existing = db.checkInDao().getCheckInByDate(date)
-            val newCheckIn = (existing ?: CheckIn(date = date)).copy(
-                feeling = selectedFeeling?.label ?: "",
-                feelingEmoji = selectedFeeling?.emoji ?: "",
-                feelingIntensity = selectedIntensity,
-                scaleOption = determinedLevel?.title ?: ""
-            )
-            db.checkInDao().insertCheckIn(newCheckIn)
-            
-            // Trigger widget update immediately
-            CalendarWidget.updateAllWidgets(requireContext())
-            
-            Toast.makeText(requireContext(), R.string.save_checkin, Toast.LENGTH_SHORT).show()
-            
-            activity?.onBackPressedDispatcher?.onBackPressed()
         }
     }
 

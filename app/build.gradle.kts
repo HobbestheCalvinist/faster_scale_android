@@ -16,8 +16,8 @@ android {
         applicationId = "com.fasterscale.app"
         minSdk = 24
         targetSdk = 36
-        versionCode = 3 // Incremented again to ensure it is fresh
-        versionName = "1.0.2"
+        versionCode = 4
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

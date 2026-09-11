@@ -4,13 +4,26 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="?android:attr/colorBackground">
+    android:background="?attr/colorSurface">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="@string/introspection_title"
+            app:titleCentered="true" />
+
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
-        android:id="@+id/scroll_view"
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,201 +35,182 @@
                 android:id="@+id/section_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Introspection"
-                android:textAppearance="?attr/textAppearanceHeadlineMedium"
-                android:textStyle="bold"
-                android:gravity="center"
-                android:layout_marginBottom="32dp"/>
+                android:layout_marginBottom="24dp"
+                android:text="@string/how_are_you_feeling"
+                android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                android:textStyle="bold" />
 
-            <!-- Step 1 & 2: Feelings Grid -->
+            <!-- Step 1: Feeling Selection -->
             <LinearLayout
                 android:id="@+id/wheel_step_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="center"
-                android:visibility="visible">
+                android:orientation="vertical">
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/feelings_grid"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:nestedScrollingEnabled="false"
-                    app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                    app:spanCount="4" />
+                    tools:itemCount="8"
+                    tools:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                    tools:listitem="@layout/item_feeling"
+                    tools:spanCount="4" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_add_feeling"
-                    style="?attr/materialButtonOutlinedStyle"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Add Feeling"
-                    android:layout_marginTop="24dp"
-                    app:icon="@android:drawable/ic_input_add"/>
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/add_custom_feeling"
+                    app:icon="@drawable/ic_add" />
+
             </LinearLayout>
 
-            <!-- Step 3 & 4: Intensity Slider -->
+            <!-- Step 2: Intensity -->
             <LinearLayout
                 android:id="@+id/intensity_step_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:gravity="center">
+                android:visibility="gone">
 
-                <com.google.android.material.card.MaterialCardView
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="24dp"
+                    android:layout_marginBottom="32dp"
+                    app:cardCornerRadius="16dp"
                     app:cardElevation="0dp"
-                    app:strokeWidth="1dp"
-                    app:strokeColor="?attr/colorOutlineVariant"
-                    android:layout_marginBottom="32dp">
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="24dp"
-                        android:gravity="center">
+                        android:padding="24dp">
 
                         <TextView
                             android:id="@+id/selected_feeling_emoji"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="😊"
                             android:textSize="64sp"
-                            android:layout_marginBottom="8dp"/>
+                            tools:text="😊" />
 
                         <TextView
                             android:id="@+id/selected_feeling_label"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Happy"
-                            android:textAppearance="?attr/textAppearanceHeadlineSmall"
-                            android:textStyle="bold"/>
+                            android:layout_marginTop="8dp"
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            tools:text="Happy" />
+
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="How strongly are you feeling this?"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:gravity="center"
-                    android:layout_marginBottom="24dp"/>
-
-                <TextView
-                    android:id="@+id/intensity_value_display"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="3"
-                    android:textAppearance="?attr/textAppearanceHeadlineLarge"
-                    android:textColor="?attr/colorPrimary"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="16dp"/>
-
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/intensity_slider"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:valueFrom="1.0"
-                    android:valueTo="5.0"
-                    android:stepSize="1.0"
-                    android:value="3.0"
-                    android:layout_marginBottom="8dp"/>
+                </androidx.cardview.widget.CardView>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
                     android:orientation="horizontal">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="1 = Very low"
-                        android:textAppearance="?attr/textAppearanceBodySmall"/>
+
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="5 = Extremely strong"
-                        android:textAppearance="?attr/textAppearanceBodySmall"/>
+                        android:text="1"
+                        android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+                    <com.google.android.material.slider.Slider
+                        android:id="@+id/intensity_slider"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:value="3"
+                        android:valueFrom="1"
+                        android:valueTo="5"
+                        android:stepSize="1.0" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5"
+                        android:textAppearance="?attr/textAppearanceLabelLarge" />
                 </LinearLayout>
 
-                <Button
+                <TextView
+                    android:id="@+id/intensity_value_display"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="3"
+                    android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_intensity_done"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Next"
                     android:layout_marginTop="32dp"
-                    android:paddingVertical="12dp"
-                    app:cornerRadius="12dp"/>
+                    android:padding="16dp"
+                    android:text="@string/next"
+                    app:cornerRadius="12dp" />
+
             </LinearLayout>
 
-            <!-- Step 3.5: Questions -->
+            <!-- Step 3: Behavior Questions -->
             <LinearLayout
                 android:id="@+id/questions_step_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:gravity="center">
+                android:visibility="gone">
 
                 <TextView
-                    android:id="@+id/question_step_title"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Checking behaviors..."
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:gravity="center"
-                    android:layout_marginBottom="24dp"/>
+                    android:layout_marginBottom="16dp"
+                    android:text="Select any that apply to you today:"
+                    android:textAppearance="?attr/textAppearanceBodyMedium" />
 
                 <LinearLayout
                     android:id="@+id/questions_list"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="32dp">
-                    <!-- Questions will be added here programmatically -->
-                </LinearLayout>
+                    android:orientation="vertical" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/button_questions_done"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Next"
-                    android:paddingVertical="12dp"
-                    app:cornerRadius="12dp"/>
+                    android:layout_marginTop="32dp"
+                    android:padding="16dp"
+                    android:text="@string/next"
+                    app:cornerRadius="12dp" />
+
             </LinearLayout>
 
-            <!-- Step 5: Summary -->
+            <!-- Step 4: Review -->
             <LinearLayout
                 android:id="@+id/review_step_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
-                android:gravity="center">
+                android:visibility="gone">
 
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="4dp"
-                    android:layout_marginBottom="32dp">
+                    app:cardCornerRadius="16dp"
+                    app:strokeWidth="0dp"
+                    app:cardBackgroundColor="?attr/colorSurfaceVariant">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="24dp">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Check-in Summary"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:layout_marginBottom="24dp"/>
 
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -268,7 +262,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Scale Level: "
+                                android:text="Suggested Scale Level: "
                                 android:textAppearance="?attr/textAppearanceBodyLarge"/>
                             <TextView
                                 android:id="@+id/summary_scale_text"
@@ -284,25 +278,18 @@
                         <com.google.android.material.divider.MaterialDivider
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginBottom="24dp"/>
+                            android:layout_marginBottom="16dp"/>
 
-                        <Button
+                        <com.google.android.material.button.MaterialButton
                             android:id="@+id/button_change_feeling"
-                            style="?attr/materialButtonOutlinedStyle"
+                            style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="Change Feeling"
-                            android:layout_marginBottom="8dp"/>
+                            android:text="@string/action_change_feeling" />
 
-                        <Button
-                            android:id="@+id/button_confirm_continue"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="Confirm and Save"
-                            android:paddingVertical="12dp"
-                            app:cornerRadius="12dp"/>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
+
             </LinearLayout>
 
         </LinearLayout>
