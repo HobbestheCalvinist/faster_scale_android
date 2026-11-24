@@ -17,7 +17,8 @@ sealed class CallScheduleListItem {
 class CallScheduleAdapter(
     private val onEditClick: (CallSchedule) -> Unit,
     private val onDeleteClick: (CallSchedule) -> Unit,
-    private val onCallClick: (CallSchedule) -> Unit
+    private val onCallClick: (CallSchedule) -> Unit,
+    private val onTextClick: (CallSchedule) -> Unit
 ) : ListAdapter<CallScheduleListItem, RecyclerView.ViewHolder>(CallScheduleDiffCallback()) {
 
     companion object {
@@ -78,6 +79,7 @@ class CallScheduleAdapter(
             binding.buttonCall.setImageResource(iconRes)
             
             binding.buttonCall.setOnClickListener { onCallClick(schedule) }
+            binding.buttonText.setOnClickListener { onTextClick(schedule) }
             
             itemView.setOnLongClickListener {
                 showPopupMenu(schedule)

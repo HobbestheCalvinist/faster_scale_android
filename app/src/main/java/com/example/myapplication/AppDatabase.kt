@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class, CustomFeeling::class], version = 15, exportSchema = false)
+@Database(entities = [CheckIn::class, Contact::class, CallSchedule::class, Commitment::class, CustomFeeling::class], version = 16, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun checkInDao(): CheckInDao
     abstract fun contactDao(): ContactDao
@@ -136,7 +136,8 @@ abstract class AppDatabase : RoomDatabase() {
                     callMade = i % 3 == 0,
                     isInboundCall = i % 6 == 0,
                     liedToday = i % 7 == 0,
-                    workingCommitments = i % 2 == 0
+                    workingCommitments = i % 2 == 0,
+                    temptationLevel = i % 6
                 ))
             }
         }

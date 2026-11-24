@@ -25,7 +25,7 @@
         android:textAppearance="?attr/textAppearanceTitleSmall"
         android:textColor="?attr/colorOnSurface"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/button_call_now"
+        app:layout_constraintEnd_toStartOf="@id/button_text_now"
         app:layout_constraintStart_toEndOf="@id/imageview_call_icon"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="10:00 AM - Outbound" />
@@ -36,10 +36,25 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
         android:textAppearance="?attr/textAppearanceBodyMedium"
-        app:layout_constraintEnd_toStartOf="@id/button_call_now"
+        app:layout_constraintEnd_toStartOf="@id/button_text_now"
         app:layout_constraintStart_toStartOf="@id/textview_call_details"
         app:layout_constraintTop_toBottomOf="@id/textview_call_details"
         tools:text="John Doe" />
+
+    <ImageButton
+        android:id="@+id/button_text_now"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginEnd="4dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/content_description_text"
+        android:padding="8dp"
+        android:scaleType="fitCenter"
+        android:src="@android:drawable/stat_notify_chat"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/button_call_now"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="?attr/colorPrimary" />
 
     <ImageButton
         android:id="@+id/button_call_now"

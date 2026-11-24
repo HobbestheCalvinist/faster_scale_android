@@ -107,7 +107,8 @@ class CallScheduleFragment : Fragment() {
         adapter = CallScheduleAdapter(
             onEditClick = { schedule -> showAddEditDialog(schedule) },
             onDeleteClick = { schedule -> showDeleteConfirmation(schedule) },
-            onCallClick = { schedule -> makeCall(schedule.contactPhone) }
+            onCallClick = { schedule -> makeCall(schedule.contactPhone) },
+            onTextClick = { schedule -> sendText(schedule.contactPhone) }
         )
         binding.recyclerviewCallSchedule.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -236,6 +237,18 @@ class CallScheduleFragment : Fragment() {
             data = Uri.parse("tel:$phoneNumber")
         }
         startActivity(intent)
+    }
+
+    private fun sendText(phoneNumber: String) {
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("smsto:$phoneNumber")
+            putExtra("sms_body", getString(R.string.default_text_message))
+        }
+        try {
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(requireContext(), "Could not open texting app", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {

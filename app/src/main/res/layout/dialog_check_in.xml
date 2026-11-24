@@ -40,6 +40,23 @@
                 android:textAppearance="?attr/textAppearanceBodyLarge" />
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Temptation Level Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Temptation Level (0-5)"
+            android:textAppearance="?attr/textAppearanceLabelLarge" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/slider_temptation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0.0"
+            android:valueTo="5.0"
+            android:stepSize="1.0"
+            android:value="0.0" />
+
         <!-- New Toggles Section -->
         <LinearLayout
             android:layout_width="match_parent"

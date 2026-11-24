@@ -20,5 +20,6 @@ data class CheckIn(
     val isInboundCall: Boolean = false,
     val completedScheduleIds: String = "",
     val liedToday: Boolean = false,
-    val workingCommitments: Boolean = false
+    val workingCommitments: Boolean = false,
+    val temptationLevel: Int = 0
 )

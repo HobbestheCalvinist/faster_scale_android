@@ -1,6 +1,7 @@
 package com.fasterscale.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -211,6 +212,20 @@ class CheckInDialogFragment : DialogFragment() {
                                 }
                             }
 
+                            itemBinding.buttonTextNow.setOnClickListener {
+                                try {
+                                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("smsto:${schedule.contactPhone}")
+                                        putExtra("sms_body", getString(R.string.default_text_message))
+                                    }
+                                    startActivity(intent)
+                                    // Auto-toggle checkmark when texting
+                                    itemBinding.switchCallMade.isChecked = true
+                                } catch (e: Exception) {
+                                    Toast.makeText(requireContext(), "Could not open texting app", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
                             itemBinding.switchCallMade.isChecked = existingCompletedIds.contains(schedule.id.toString())
                             callSwitches[schedule.id] = itemBinding.switchCallMade
                         }
@@ -241,6 +256,7 @@ class CheckInDialogFragment : DialogFragment() {
                         }
                         b.switchLied.isChecked = checkIn.liedToday
                         b.switchCommitments.isChecked = checkIn.workingCommitments
+                        b.sliderTemptation.value = checkIn.temptationLevel.toFloat()
                         existingCompletedIds = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }.toSet()
                     }
                     checkScheduledCalls()
@@ -271,6 +287,7 @@ class CheckInDialogFragment : DialogFragment() {
         
         val liedToday = binding.switchLied.isChecked
         val workingCommitments = binding.switchCommitments.isChecked
+        val temptationLevel = binding.sliderTemptation.value.toInt()
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -287,7 +304,8 @@ class CheckInDialogFragment : DialogFragment() {
                         isInboundCall = finalIsInbound,
                         completedScheduleIds = completedIdsString,
                         liedToday = liedToday,
-                        workingCommitments = workingCommitments
+                        workingCommitments = workingCommitments,
+                        temptationLevel = temptationLevel
                     )
                 } else {
                     CheckIn(
@@ -298,7 +316,8 @@ class CheckInDialogFragment : DialogFragment() {
                         isInboundCall = finalIsInbound,
                         completedScheduleIds = completedIdsString,
                         liedToday = liedToday,
-                        workingCommitments = workingCommitments
+                        workingCommitments = workingCommitments,
+                        temptationLevel = temptationLevel
                     )
                 }
 

@@ -84,6 +84,7 @@ class HistoryAdapter(
             
             holder.binding.textviewHistoryDate.text = checkIn.date
             holder.binding.textviewHistoryScale.text = checkIn.scaleOption
+            holder.binding.textviewHistoryTemptation.text = "Temptation: ${checkIn.temptationLevel}/5"
             
             val colorRes = when (checkIn.scaleOption) {
                 context.getString(R.string.scale_restoration) -> R.color.color_restoration

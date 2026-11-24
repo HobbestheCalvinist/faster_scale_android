@@ -89,16 +89,28 @@
             app:constraint_referenced_ids="textview_history_date,textview_history_scale,button_delete,button_edit,button_share" />
 
         <TextView
-            android:id="@+id/textview_history_call"
+            android:id="@+id/textview_history_temptation"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textStyle="italic"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/header_barrier"
+            tools:text="Temptation: 2/5" />
+
+        <TextView
+            android:id="@+id/textview_history_call"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorPrimary"
             android:text="@string/label_call_made_simple"
             android:visibility="gone"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/header_barrier"
+            app:layout_constraintBottom_toBottomOf="@id/textview_history_temptation"
+            app:layout_constraintStart_toEndOf="@id/textview_history_temptation"
+            app:layout_constraintTop_toTopOf="@id/textview_history_temptation"
             tools:visibility="visible" />
 
         <TextView
@@ -112,7 +124,7 @@
             android:ellipsize="none"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textview_history_call"
+            app:layout_constraintTop_toBottomOf="@id/textview_history_temptation"
             tools:text="Notes will appear here..." />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

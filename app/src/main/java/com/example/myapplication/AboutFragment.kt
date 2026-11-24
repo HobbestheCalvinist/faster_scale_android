@@ -104,13 +104,24 @@ class AboutFragment : Fragment() {
     private fun performBackup(uri: Uri) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val checkIns = db.checkInDao().getAllCheckIns().first()
-                val contacts = db.contactDao().getAllContacts().first()
-                val schedules = db.callScheduleDao().getAllSchedules().first()
-                val commitments = db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()
+                val checkIns = db.checkInDao().getAllCheckIns().first().map {
+                    CheckInDTO(it.id, it.date, it.scaleOption, it.feeling, it.feelingEmoji, it.feelingIntensity, it.description, it.callMade, it.isInboundCall, it.completedScheduleIds, it.liedToday, it.workingCommitments)
+                }
+                val contacts = db.contactDao().getAllContacts().first().map {
+                    ContactDTO(it.id, it.name, it.phoneNumber)
+                }
+                val schedules = db.callScheduleDao().getAllSchedules().first().map {
+                    CallScheduleDTO(it.id, it.dayOfWeek, it.time, it.contactId, it.contactName, it.contactPhone, it.isInbound)
+                }
+                val commitments = (db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()).map {
+                    CommitmentDTO(it.id, it.title, it.description, it.targetCompletions, null, it.completedDaysMask, it.isCompleted, it.timestamp)
+                }
+                val customFeelings = db.customFeelingDao().getAllCustomFeelings().first().map {
+                    CustomFeelingDTO(it.id, it.category, it.emoji, it.meaning)
+                }
                 val prefs = sharedPreferences.all
 
-                val backupData = BackupData(checkIns, contacts, schedules, commitments, prefs)
+                val backupData = BackupData(checkIns, contacts, schedules, commitments, customFeelings, prefs)
                 val json = Gson().toJson(backupData)
 
                 withContext(Dispatchers.IO) {
@@ -138,21 +149,85 @@ class AboutFragment : Fragment() {
                 val backupData = Gson().fromJson(json, BackupData::class.java)
 
                 withContext(Dispatchers.IO) {
-                    // Restore Database
-                    backupData.checkIns.forEach { db.checkInDao().insertCheckIn(it) }
-                    backupData.contacts.forEach { db.contactDao().insertContact(it) }
-                    backupData.callSchedules.forEach { db.callScheduleDao().insertSchedule(it) }
-                    backupData.commitments.forEach { db.commitmentDao().insertCommitment(it) }
+                    // Restore Database with null-safety and sanitization for backward compatibility
+                    backupData.checkIns?.forEach { dto ->
+                        db.checkInDao().insertCheckIn(CheckIn(
+                            id = dto.id,
+                            date = dto.date ?: "",
+                            scaleOption = dto.scaleOption ?: "",
+                            feeling = dto.feeling ?: "",
+                            feelingEmoji = dto.feelingEmoji ?: "",
+                            feelingIntensity = dto.feelingIntensity ?: 0,
+                            description = dto.description ?: "",
+                            callMade = dto.callMade ?: false,
+                            isInboundCall = dto.isInboundCall ?: false,
+                            completedScheduleIds = dto.completedScheduleIds ?: "",
+                            liedToday = dto.liedToday ?: false,
+                            workingCommitments = dto.workingCommitments ?: false
+                        )) 
+                    }
+                    backupData.contacts?.forEach { dto ->
+                        db.contactDao().insertContact(Contact(
+                            id = dto.id,
+                            name = dto.name ?: "",
+                            phoneNumber = dto.phoneNumber ?: ""
+                        )) 
+                    }
+                    backupData.callSchedules?.forEach { dto ->
+                        db.callScheduleDao().insertSchedule(CallSchedule(
+                            id = dto.id,
+                            dayOfWeek = dto.dayOfWeek ?: "",
+                            time = dto.time ?: "",
+                            contactId = dto.contactId ?: 0,
+                            contactName = dto.contactName ?: "",
+                            contactPhone = dto.contactPhone ?: "",
+                            isInbound = dto.isInbound ?: false
+                        )) 
+                    }
+                    backupData.commitments?.forEach { dto ->
+                        // Handle legacy completions field if mask is missing
+                        val mask = dto.completedDaysMask ?: if (dto.currentCompletions != null) {
+                            // Best effort: fill from Monday onwards
+                            var m = 0
+                            for (i in 0 until (dto.currentCompletions ?: 0).coerceAtMost(7)) {
+                                m = m or (1 shl (i + 1) % 7) // Simple mapping
+                            }
+                            m
+                        } else 0
+
+                        db.commitmentDao().insertCommitment(Commitment(
+                            id = dto.id,
+                            title = dto.title ?: "",
+                            description = dto.description ?: "",
+                            targetCompletions = dto.targetCompletions ?: 1,
+                            completedDaysMask = mask,
+                            isCompleted = dto.isCompleted ?: false,
+                            timestamp = dto.timestamp ?: System.currentTimeMillis()
+                        )) 
+                    }
+                    backupData.customFeelings?.forEach { dto ->
+                        db.customFeelingDao().insertCustomFeeling(CustomFeeling(
+                            id = dto.id,
+                            category = dto.category ?: "",
+                            emoji = dto.emoji ?: "",
+                            meaning = dto.meaning ?: ""
+                        )) 
+                    }
 
                     // Restore Preferences
                     val editor = sharedPreferences.edit()
-                    backupData.preferences.forEach { (key, value) ->
+                    backupData.preferences?.forEach { (key, value) ->
                         when (value) {
                             is Boolean -> editor.putBoolean(key, value)
                             is Double -> {
-                                // GSON deserializes all numbers as Double by default
-                                if (value % 1.0 == 0.0) {
-                                    editor.putInt(key, value.toInt())
+                                // GSON deserializes all numbers as Double by default.
+                                val longValue = value.toLong()
+                                if (value == longValue.toDouble()) {
+                                    if (longValue in Int.MIN_VALUE..Int.MAX_VALUE) {
+                                        editor.putInt(key, longValue.toInt())
+                                    } else {
+                                        editor.putLong(key, longValue)
+                                    }
                                 } else {
                                     editor.putFloat(key, value.toFloat())
                                 }

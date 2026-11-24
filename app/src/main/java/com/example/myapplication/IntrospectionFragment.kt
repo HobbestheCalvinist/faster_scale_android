@@ -1,13 +1,14 @@
 package com.fasterscale.app
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.LinearLayout
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.fasterscale.app.databinding.FragmentIntrospectionBinding
@@ -37,11 +38,55 @@ class IntrospectionFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupMenu()
         setupSteps()
         setupFeelingsGrid()
         setupIntensitySlider()
         setupQuestionsButtons()
         setupReviewButtons()
+    }
+
+    private fun setupMenu() {
+        val menuHost: MenuHost = requireActivity()
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_introspection, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.action_reset -> {
+                        showResetConfirmation()
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private fun showResetConfirmation() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.action_reset)
+            .setMessage(R.string.reset_introspection_confirmation)
+            .setPositiveButton(R.string.action_reset) { _, _ ->
+                resetWork()
+            }
+            .setNegativeButton(R.string.action_cancel, null)
+            .show()
+    }
+
+    private fun resetWork() {
+        selectedFeeling = null
+        selectedIntensity = 3
+        determinedLevel = null
+        behaviorsTally.clear()
+        
+        // Reset slider to default
+        binding.intensitySlider.value = 3f
+        binding.intensityValueDisplay.text = "3"
+        
+        setupSteps()
     }
 
     private fun setupSteps() {
@@ -50,6 +95,7 @@ class IntrospectionFragment : Fragment() {
         binding.questionsStepContainer.visibility = View.GONE
         binding.reviewStepContainer.visibility = View.GONE
         binding.sectionTitle.text = getString(R.string.how_are_you_feeling)
+        binding.scrollView.smoothScrollTo(0, 0)
     }
 
     private fun setupFeelingsGrid() {

@@ -71,12 +71,15 @@
         <item>Truly accountable</item>
         <item>Working to resolve problems</item>
         <item>Identifying fears and feelings</item>
-        <item>Keeping commitments - bible reading, prayer, church</item>
-        <item>Keeping commitments - family, group, coworkers</item>
+        <item>Spiritual commitments - bible reading, prayer, church</item>
+        <item>Relational commitments - family, group, coworkers</item>
         <item>Keeping commitments to change</item>
         <item>Being open and honest</item>
         <item>Making eye contact</item>
+        <item>Healthy self-care</item>
+        <item>Living an authentic life</item>
         <item>Increasing in relationships others</item>
+        <item>Acts of service/care for others</item>
     </string-array>
 
     <string-array name="behaviors_forgetting">
@@ -110,7 +113,6 @@
         <item>Flirting for validation</item>
         <item>Trouble concentrating</item>
         <item>Misusing medications</item>
-
     </string-array>
 
     <string-array name="behaviors_speeding">
@@ -140,6 +142,7 @@
         <item>Defensive</item>
         <item>Difficulty listening</item>
     </string-array>
+
     <string-array name="behaviors_ticked_off">
         <item>Crisis in money, work, and relationships</item>
         <item>Increased sarcasm</item>
@@ -190,14 +193,16 @@
     <string-array name="behaviors_relapse">
         <item>Hiding from accountability</item>
         <item>Lost in shame / failure</item>
+        <item>Crossing Boundaries</item>
         <item>Giving up and giving in</item>
         <item>Out of control</item>
         <item>Lost in addiction</item>
+        <item>Trading one addiction for another</item>
         <item>Lying to yourself and others</item>
         <item>Believing you need harmful coping behaviors</item>
         <item>Redefining limits to justify behavior</item>
         <item>Believing this time doesn’t count</item>
-        <item>I’ve already failed, might as well go further</item>
+        <item>Justifying compounding harmful behaviors</item>
         <item>Living a double-life</item>
         <item>Turning a slip into a spiral</item>
         <item>Abandoning recovery</item>
@@ -256,24 +261,21 @@
     <string name="settings_demo_mode">Demo Mode (Screenshot Ready)</string>
     <string name="demo_mode_desc">Switching to demo mode will show fake data for screenshots. Please restart the app after toggling this.</string>
     <string name="action_share_other">Share using other apps (Email, Messaging, etc.)…</string>
-    <string name="title_share_via">Share via…</string>
 
-    <string name="about_attribution_label">Inspiration</string>
-    <string name="about_attribution_text">Inspired by the work done by the Genesis Process.</string>
-    <string name="about_genesis_website">Visit Genesis Process</string>
+    <string name="default_text_message">I could use a call, when can we connect?</string>
+    <string name="content_description_text">Send Text</string>
 
-    <!-- Introspection Redesign -->
+    <!-- Missing Strings Fixed -->
+    <string name="about_attribution_label">Attribution</string>
+    <string name="about_attribution_text">The FASTER Scale and associated materials are used with permission from the Genesis Process.</string>
+    <string name="about_genesis_website">Genesis Process Website</string>
     <string name="how_are_you_feeling">How are you feeling?</string>
-    <string name="how_strongly_feeling">How strongly are you feeling this?</string>
-    <string name="intensity_low">1 - Very low</string>
-    <string name="intensity_high">10 - Extremely strong</string>
-    <string name="checkin_summary">Check-in Summary</string>
-    <string name="summary_feeling_label">Feeling: %1$s</string>
-    <string name="summary_intensity_label">Intensity: %1$d / 10</string>
-    <string name="action_change_feeling">Change Feeling</string>
-    <string name="action_continue_to_faster">Continue to FASTER</string>
-    <string name="faster_scale_reference">FASTER Scale Reference</string>
     <string name="add_custom_feeling">Add Custom Feeling</string>
-    <string name="label_feeling_meaning">What does this emoji mean to you?</string>
-    <string name="hint_feeling_meaning">e.g. Hopeful, Anxious, etc.</string>
+    <string name="action_change_feeling">Change Feeling</string>
+    <string name="how_strongly_feeling">How strongly are you feeling this?</string>
+    <string name="checkin_summary">Check-in Summary</string>
+
+    <string name="action_reset">Reset</string>
+    <string name="reset_introspection_confirmation">Are you sure you want to clear your current introspection work?</string>
+    <string name="title_share_via">Share via</string>
 </resources>

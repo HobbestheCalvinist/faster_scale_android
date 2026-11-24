@@ -208,6 +208,7 @@ class HistoryFragment : Fragment() {
             |Faster Scale Check-in
             |Date: ${checkIn.date}
             |Level: ${checkIn.scaleOption}
+            |Temptation: ${checkIn.temptationLevel}/5
             |Phone Call: $callStatus
             |Notes: 
             |${checkIn.description}
@@ -224,6 +225,7 @@ class HistoryFragment : Fragment() {
 
             report.append("Date: ${checkIn.date}\n")
             report.append("Level: ${checkIn.scaleOption}\n")
+            report.append("Temptation: ${checkIn.temptationLevel}/5\n")
             report.append("Phone Call: $callStatus\n")
             if (checkIn.description.isNotBlank()) {
                 report.append("Notes: ${checkIn.description}\n")
