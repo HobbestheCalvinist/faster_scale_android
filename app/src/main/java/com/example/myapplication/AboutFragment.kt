@@ -105,7 +105,7 @@ class AboutFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
                 val checkIns = db.checkInDao().getAllCheckIns().first().map {
-                    CheckInDTO(it.id, it.date, it.scaleOption, it.feeling, it.feelingEmoji, it.feelingIntensity, it.description, it.callMade, it.isInboundCall, it.completedScheduleIds, it.liedToday, it.workingCommitments)
+                    CheckInDTO(it.id, it.date, it.scaleOption, it.feeling, it.feelingEmoji, it.feelingIntensity, it.description, it.callMade, it.isInboundCall, it.completedScheduleIds, it.liedToday, it.workingCommitments, it.temptationLevel)
                 }
                 val contacts = db.contactDao().getAllContacts().first().map {
                     ContactDTO(it.id, it.name, it.phoneNumber)
@@ -113,11 +113,29 @@ class AboutFragment : Fragment() {
                 val schedules = db.callScheduleDao().getAllSchedules().first().map {
                     CallScheduleDTO(it.id, it.dayOfWeek, it.time, it.contactId, it.contactName, it.contactPhone, it.isInbound)
                 }
-                val commitments = (db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()).map {
-                    CommitmentDTO(it.id, it.title, it.description, it.targetCompletions, null, it.completedDaysMask, it.isCompleted, it.timestamp)
+                val commitments = (db.commitmentDao().getActiveCommitments().first() + 
+                                   db.commitmentDao().getPendingCommitments().first() + 
+                                   db.commitmentDao().getCompletedCommitments().first()).map {
+                    CommitmentDTO(
+                        id = it.id,
+                        title = it.title,
+                        description = it.description,
+                        frequency = it.frequency,
+                        interval = it.interval,
+                        daysOfWeekBitmask = it.daysOfWeekBitmask,
+                        dayOfMonth = it.dayOfMonth,
+                        targetCompletions = it.targetCompletions,
+                        completedCount = it.completedCount,
+                        totalCompletions = it.totalCompletions,
+                        lastCompletionTimestamp = it.lastCompletionTimestamp,
+                        timestamp = it.timestamp,
+                        startDate = it.startDate,
+                        endDate = it.endDate,
+                        status = it.status
+                    )
                 }
                 val customFeelings = db.customFeelingDao().getAllCustomFeelings().first().map {
-                    CustomFeelingDTO(it.id, it.category, it.emoji, it.meaning)
+                    CustomFeelingDTO(it.id, emoji = it.emoji, label = it.label, levelId = it.levelId)
                 }
                 val prefs = sharedPreferences.all
 
@@ -163,7 +181,8 @@ class AboutFragment : Fragment() {
                             isInboundCall = dto.isInboundCall ?: false,
                             completedScheduleIds = dto.completedScheduleIds ?: "",
                             liedToday = dto.liedToday ?: false,
-                            workingCommitments = dto.workingCommitments ?: false
+                            workingCommitments = dto.workingCommitments ?: false,
+                            temptationLevel = dto.temptationLevel ?: 0
                         )) 
                     }
                     backupData.contacts?.forEach { dto ->
@@ -180,37 +199,44 @@ class AboutFragment : Fragment() {
                             time = dto.time ?: "",
                             contactId = dto.contactId ?: 0,
                             contactName = dto.contactName ?: "",
-                            contactPhone = dto.contactPhone ?: "",
+                            contactPhone = dto.contactPhone ?: "" ,
                             isInbound = dto.isInbound ?: false
                         )) 
                     }
                     backupData.commitments?.forEach { dto ->
-                        // Handle legacy completions field if mask is missing
-                        val mask = dto.completedDaysMask ?: if (dto.currentCompletions != null) {
-                            // Best effort: fill from Monday onwards
-                            var m = 0
-                            for (i in 0 until (dto.currentCompletions ?: 0).coerceAtMost(7)) {
-                                m = m or (1 shl (i + 1) % 7) // Simple mapping
-                            }
-                            m
-                        } else 0
+                        // Migrate legacy fields to new status system
+                        val initialStatus = if (dto.status != null) {
+                            dto.status
+                        } else if (dto.isCompleted == true) {
+                            2 // Completed Forever
+                        } else {
+                            0 // Active
+                        }
 
                         db.commitmentDao().insertCommitment(Commitment(
                             id = dto.id,
                             title = dto.title ?: "",
                             description = dto.description ?: "",
+                            frequency = dto.frequency ?: "WEEKLY",
+                            interval = dto.interval ?: 1,
+                            daysOfWeekBitmask = dto.daysOfWeekBitmask ?: 0,
+                            dayOfMonth = dto.dayOfMonth ?: 1,
                             targetCompletions = dto.targetCompletions ?: 1,
-                            completedDaysMask = mask,
-                            isCompleted = dto.isCompleted ?: false,
-                            timestamp = dto.timestamp ?: System.currentTimeMillis()
+                            completedCount = dto.completedCount ?: 0,
+                            totalCompletions = dto.totalCompletions ?: 0,
+                            lastCompletionTimestamp = dto.lastCompletionTimestamp ?: 0,
+                            timestamp = dto.timestamp ?: System.currentTimeMillis(),
+                            startDate = dto.startDate ?: System.currentTimeMillis(),
+                            endDate = dto.endDate,
+                            status = initialStatus
                         )) 
                     }
                     backupData.customFeelings?.forEach { dto ->
                         db.customFeelingDao().insertCustomFeeling(CustomFeeling(
                             id = dto.id,
-                            category = dto.category ?: "",
                             emoji = dto.emoji ?: "",
-                            meaning = dto.meaning ?: ""
+                            label = dto.label ?: dto.meaning ?: "",
+                            levelId = dto.levelId ?: "restoration" // Fallback for old feelings
                         )) 
                     }
 

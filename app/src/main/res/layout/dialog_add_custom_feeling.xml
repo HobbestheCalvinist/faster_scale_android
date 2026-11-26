@@ -36,6 +36,19 @@
         android:layout_height="wrap_content"
         android:hint="e.g. Hopeful, Grateful, etc."
         android:inputType="textCapSentences"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Which level does this belong to?"
+        android:textAppearance="?attr/textAppearanceLabelMedium"
+        android:layout_marginBottom="8dp"/>
+
+    <Spinner
+        android:id="@+id/spinner_level"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"/>
 
 </LinearLayout>

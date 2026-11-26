@@ -45,16 +45,29 @@ data class CommitmentDTO(
     val id: Int = 0,
     val title: String? = null,
     val description: String? = null,
+    val frequency: String? = null,
+    val interval: Int? = null,
+    val daysOfWeekBitmask: Int? = null,
+    val dayOfMonth: Int? = null,
     val targetCompletions: Int? = null,
     val currentCompletions: Int? = null, // Legacy field
     val completedDaysMask: Int? = null,
+    val completedCount: Int? = null,
+    val totalCompletions: Int? = null,
     val isCompleted: Boolean? = null,
-    val timestamp: Long? = null
+    val lastCompletionTimestamp: Long? = null,
+    val timestamp: Long? = null,
+    val startDate: Long? = null,
+    val endDate: Long? = null,
+    val status: Int? = null
 )
 
 data class CustomFeelingDTO(
     val id: Int = 0,
-    val category: String? = null,
     val emoji: String? = null,
+    val label: String? = null,
+    val levelId: String? = null,
+    // Legacy fields for migration
+    val category: String? = null,
     val meaning: String? = null
 )

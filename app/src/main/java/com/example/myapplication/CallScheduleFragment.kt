@@ -107,8 +107,12 @@ class CallScheduleFragment : Fragment() {
         adapter = CallScheduleAdapter(
             onEditClick = { schedule -> showAddEditDialog(schedule) },
             onDeleteClick = { schedule -> showDeleteConfirmation(schedule) },
-            onCallClick = { schedule -> makeCall(schedule.contactPhone) },
-            onTextClick = { schedule -> sendText(schedule.contactPhone) }
+            onCallClick = { schedule -> 
+                if (schedule.contactPhone.isNotEmpty()) makeCall(schedule.contactPhone) 
+            },
+            onTextClick = { schedule -> 
+                if (schedule.contactPhone.isNotEmpty()) sendText(schedule.contactPhone) 
+            }
         )
         binding.recyclerviewCallSchedule.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -131,15 +135,16 @@ class CallScheduleFragment : Fragment() {
             .setPositiveButton(R.string.action_save) { _, _ ->
                 val day = dialogBinding.exposedDropdownDay.editText?.text.toString()
                 val time = dialogBinding.textviewTimeValue.text.toString()
-                val contactName = dialogBinding.exposedDropdownContact.editText?.text.toString()
+                val contactNameInput = dialogBinding.exposedDropdownContact.editText?.text.toString().trim()
                 val isInbound = dialogBinding.switchInbound.isChecked
 
-                if (day.isNotEmpty() && time.isNotEmpty() && contactName.isNotEmpty()) {
+                if (day.isNotEmpty() && time.isNotEmpty()) {
                     viewLifecycleOwner.lifecycleScope.launch {
                         val contacts = db.contactDao().getAllContacts().first()
-                        val selectedContact = contacts.find { it.name == contactName }
-                        if (selectedContact != null) {
-                            val newSchedule = CallSchedule(
+                        val selectedContact = contacts.find { it.name == contactNameInput }
+                        
+                        val newSchedule = if (selectedContact != null) {
+                            CallSchedule(
                                 id = schedule?.id ?: 0,
                                 dayOfWeek = day,
                                 time = time,
@@ -148,13 +153,25 @@ class CallScheduleFragment : Fragment() {
                                 contactPhone = selectedContact.phoneNumber,
                                 isInbound = isInbound
                             )
-                            if (isEdit) {
-                                db.callScheduleDao().updateSchedule(newSchedule)
-                                AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule)
-                            } else {
-                                val id = db.callScheduleDao().insertSchedule(newSchedule)
-                                AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule.copy(id = id.toInt()))
-                            }
+                        } else {
+                            // If no contact selected or input doesn't match, use "Somebody"
+                            CallSchedule(
+                                id = schedule?.id ?: 0,
+                                dayOfWeek = day,
+                                time = time,
+                                contactId = 0,
+                                contactName = "Somebody",
+                                contactPhone = "",
+                                isInbound = isInbound
+                            )
+                        }
+
+                        if (isEdit) {
+                            db.callScheduleDao().updateSchedule(newSchedule)
+                            AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule)
+                        } else {
+                            val id = db.callScheduleDao().insertSchedule(newSchedule)
+                            AlarmHelper.scheduleCallAlarm(requireContext(), newSchedule.copy(id = id.toInt()))
                         }
                     }
                 }
@@ -168,27 +185,18 @@ class CallScheduleFragment : Fragment() {
         fun validate() {
             val day = dialogBinding.exposedDropdownDay.editText?.text.toString()
             val time = dialogBinding.textviewTimeValue.text.toString()
-            val contactName = dialogBinding.exposedDropdownContact.editText?.text.toString()
             val notSet = getString(R.string.time_not_set)
             
             saveButton.isEnabled = day.isNotBlank() && 
                                    time.isNotBlank() && 
-                                   time != notSet && 
-                                   contactName.isNotBlank()
+                                   time != notSet
         }
 
         dialogBinding.exposedDropdownDay.editText?.addTextChangedListener { validate() }
-        dialogBinding.exposedDropdownContact.editText?.addTextChangedListener { validate() }
 
         // Setup Contact Spinner
         viewLifecycleOwner.lifecycleScope.launch {
             val contacts = db.contactDao().getAllContacts().first()
-            if (contacts.isEmpty()) {
-                Toast.makeText(requireContext(), R.string.no_contacts_available, Toast.LENGTH_LONG).show()
-                dialog.dismiss()
-                return@launch
-            }
-
             val contactNames = contacts.map { it.name }
             val contactAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, contactNames)
             (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setAdapter(contactAdapter)
@@ -197,7 +205,8 @@ class CallScheduleFragment : Fragment() {
             schedule?.let { s ->
                 (dialogBinding.exposedDropdownDay.editText as? AutoCompleteTextView)?.setText(s.dayOfWeek, false)
                 dialogBinding.textviewTimeValue.text = s.time
-                (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setText(s.contactName, false)
+                val nameToDisplay = if (s.contactName == "Somebody" && s.contactId == 0) "" else s.contactName
+                (dialogBinding.exposedDropdownContact.editText as? AutoCompleteTextView)?.setText(nameToDisplay, false)
                 dialogBinding.switchInbound.isChecked = s.isInbound
             }
             validate()

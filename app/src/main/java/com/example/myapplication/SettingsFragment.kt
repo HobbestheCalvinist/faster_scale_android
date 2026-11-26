@@ -86,7 +86,7 @@ class SettingsFragment : Fragment() {
         sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
         db = AppDatabase.getDatabase(requireContext())
 
-        setupPermissionSection()
+        setupPermissionStatus()
         setupNotificationSettings()
         setupStartDaySettings()
         setupShareSettings()
@@ -100,7 +100,7 @@ class SettingsFragment : Fragment() {
         updatePermissionStatus()
     }
 
-    private fun setupPermissionSection() {
+    private fun setupPermissionStatus() {
         binding.buttonFixNotifications.setOnClickListener {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -290,7 +290,7 @@ class SettingsFragment : Fragment() {
             sharedPreferences.edit().putBoolean("demo_mode", isChecked).apply()
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Restart Required")
-                .setMessage(R.string.demo_mode_desc)
+                .setMessage("Please restart the app for Demo Mode changes to take effect.")
                 .setPositiveButton("OK", null)
                 .show()
         }
@@ -315,14 +315,14 @@ class SettingsFragment : Fragment() {
             adapter = contactAdapter
         }
 
-        binding.buttonAddContact.setOnClickListener {
-            showAddContactDialog()
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             db.contactDao().getAllContacts().collect { contacts ->
                 contactAdapter.submitList(contacts)
             }
+        }
+
+        binding.buttonAddContact.setOnClickListener {
+            showAddContactDialog()
         }
     }
 
@@ -383,11 +383,28 @@ class SettingsFragment : Fragment() {
                 val schedules = db.callScheduleDao().getAllSchedules().first().map {
                     CallScheduleDTO(it.id, it.dayOfWeek, it.time, it.contactId, it.contactName, it.contactPhone, it.isInbound)
                 }
-                val commitments = (db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()).map {
-                    CommitmentDTO(it.id, it.title, it.description, it.targetCompletions, null, it.completedDaysMask, it.isCompleted, it.timestamp)
+                val commitments = (db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getPendingCommitments().first() + db.commitmentDao().getCompletedCommitments().first()).map {
+                    CommitmentDTO(
+                        id = it.id,
+                        title = it.title,
+                        description = it.description,
+                        frequency = it.frequency,
+                        interval = it.interval,
+                        daysOfWeekBitmask = it.daysOfWeekBitmask,
+                        dayOfMonth = it.dayOfMonth,
+                        targetCompletions = it.targetCompletions,
+                        completedCount = it.completedCount,
+                        totalCompletions = it.totalCompletions,
+                        isCompleted = null, // Logic replaced by status
+                        lastCompletionTimestamp = it.lastCompletionTimestamp,
+                        timestamp = it.timestamp,
+                        startDate = it.startDate,
+                        endDate = it.endDate,
+                        status = it.status
+                    )
                 }
                 val customFeelings = db.customFeelingDao().getAllCustomFeelings().first().map {
-                    CustomFeelingDTO(it.id, it.category, it.emoji, it.meaning)
+                    CustomFeelingDTO(it.id, emoji = it.emoji, label = it.label, levelId = it.levelId)
                 }
                 val prefs = sharedPreferences.all
 
@@ -419,7 +436,7 @@ class SettingsFragment : Fragment() {
                 val backupData = Gson().fromJson(json, BackupData::class.java)
 
                 withContext(Dispatchers.IO) {
-                    // Restore Database with null-safety and sanitization for backward compatibility
+                    // Restore Database with sanitization
                     backupData.checkIns?.forEach { dto ->
                         db.checkInDao().insertCheckIn(CheckIn(
                             id = dto.id,
@@ -456,31 +473,33 @@ class SettingsFragment : Fragment() {
                         )) 
                     }
                     backupData.commitments?.forEach { dto ->
-                        // Handle legacy completions field if mask is missing
-                        val mask = dto.completedDaysMask ?: if (dto.currentCompletions != null) {
-                            var m = 0
-                            for (i in 0 until (dto.currentCompletions ?: 0).coerceAtMost(7)) {
-                                m = m or (1 shl (i + 1) % 7)
-                            }
-                            m
-                        } else 0
+                        // Migrate legacy isCompleted to status
+                        val initialStatus = if (dto.status != null) dto.status else if (dto.isCompleted == true) 2 else 0
 
                         db.commitmentDao().insertCommitment(Commitment(
                             id = dto.id,
                             title = dto.title ?: "",
                             description = dto.description ?: "",
+                            frequency = dto.frequency ?: "WEEKLY",
+                            interval = dto.interval ?: 1,
+                            daysOfWeekBitmask = dto.daysOfWeekBitmask ?: 0,
+                            dayOfMonth = dto.dayOfMonth ?: 1,
                             targetCompletions = dto.targetCompletions ?: 1,
-                            completedDaysMask = mask,
-                            isCompleted = dto.isCompleted ?: false,
-                            timestamp = dto.timestamp ?: System.currentTimeMillis()
+                            completedCount = dto.completedCount ?: 0,
+                            totalCompletions = dto.totalCompletions ?: 0,
+                            lastCompletionTimestamp = dto.lastCompletionTimestamp ?: 0,
+                            timestamp = dto.timestamp ?: System.currentTimeMillis(),
+                            startDate = dto.startDate ?: System.currentTimeMillis(),
+                            endDate = dto.endDate,
+                            status = initialStatus
                         )) 
                     }
                     backupData.customFeelings?.forEach { dto ->
                         db.customFeelingDao().insertCustomFeeling(CustomFeeling(
                             id = dto.id,
-                            category = dto.category ?: "",
                             emoji = dto.emoji ?: "",
-                            meaning = dto.meaning ?: ""
+                            label = dto.label ?: dto.meaning ?: "",
+                            levelId = dto.levelId ?: "restoration"
                         )) 
                     }
 
@@ -542,7 +561,6 @@ class SettingsFragment : Fragment() {
         var phoneNumber: String? = null
         val contentResolver = requireContext().contentResolver
 
-        // Get Name
         contentResolver.query(contactUri, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
                 val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
@@ -552,7 +570,6 @@ class SettingsFragment : Fragment() {
                 if (idIndex != -1) {
                     val contactId = cursor.getString(idIndex)
                     
-                    // Get Phone Number
                     contentResolver.query(
                         ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                         null,
