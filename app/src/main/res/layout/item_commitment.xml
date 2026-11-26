@@ -17,29 +17,42 @@
         android:paddingHorizontal="12dp"
         android:paddingVertical="16dp">
 
-        <!-- Always visible: Title and Expand Arrow -->
-        <LinearLayout
+        <!-- Header: Title and Frequency Label on the right -->
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/textview_commitment_title"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_alignParentStart="true"
+                android:layout_toStartOf="@id/textview_commitment_frequency_label"
+                android:layout_marginEnd="8dp"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textview_commitment_frequency_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toStartOf="@id/imageview_expand_arrow"
+                android:layout_centerVertical="true"
+                android:layout_marginEnd="8dp"
+                android:textAppearance="?attr/textAppearanceLabelSmall"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="italic" />
 
             <ImageView
                 android:id="@+id/imageview_expand_arrow"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
                 android:src="@android:drawable/arrow_down_float"
                 app:tint="?attr/colorOnSurfaceVariant"
                 android:contentDescription="Expand" />
-        </LinearLayout>
+        </RelativeLayout>
 
         <!-- Expandable Content -->
         <LinearLayout
@@ -79,6 +92,16 @@
                     android:layout_weight="1"
                     android:orientation="horizontal"
                     android:gravity="center_vertical" />
+
+                <ImageButton
+                    android:id="@+id/button_complete"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_marginStart="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/checkbox_on_background"
+                    app:tint="?attr/colorPrimary"
+                    android:contentDescription="Complete Forever" />
 
                 <ImageButton
                     android:id="@+id/button_edit"

@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.Manifest
 import android.app.TimePickerDialog
@@ -7,8 +7,10 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +21,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myapplication.databinding.FragmentSettingsBinding
+import com.fasterscale.app.databinding.DialogAddContactBinding
+import com.fasterscale.app.databinding.FragmentSettingsBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
@@ -55,6 +58,13 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private val requestNotificationPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+        updatePermissionStatus()
+        if (isGranted) {
+            Toast.makeText(requireContext(), "Notifications enabled", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private val createBackupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri: Uri? ->
         uri?.let { performBackup(it) }
     }
@@ -76,12 +86,76 @@ class SettingsFragment : Fragment() {
         sharedPreferences = requireActivity().getSharedPreferences("prefs", Context.MODE_PRIVATE)
         db = AppDatabase.getDatabase(requireContext())
 
+        setupPermissionStatus()
         setupNotificationSettings()
         setupStartDaySettings()
         setupShareSettings()
         setupDemoMode()
         setupContactSettings()
         setupBackupRestore()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updatePermissionStatus()
+    }
+
+    private fun setupPermissionStatus() {
+        binding.buttonFixNotifications.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                requestNotificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", requireContext().packageName, null)
+                }
+                startActivity(intent)
+            }
+        }
+
+        binding.buttonFixAlarms.setOnClickListener {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+                    data = Uri.fromParts("package", requireContext().packageName, null)
+                }
+                startActivity(intent)
+            }
+        }
+
+        binding.buttonFixBattery.setOnClickListener {
+            val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+            startActivity(intent)
+        }
+        
+        updatePermissionStatus()
+    }
+
+    private fun updatePermissionStatus() {
+        if (_binding == null) return
+        val context = context ?: return
+        
+        // Notifications
+        val notificationsGranted = AlarmHelper.isNotificationPermissionGranted(context)
+        binding.textStatusNotifications.text = "Status: ${if (notificationsGranted) "Allowed" else "Blocked"}"
+        binding.buttonFixNotifications.visibility = if (notificationsGranted) View.GONE else View.VISIBLE
+        binding.iconPermissionNotifications.setImageResource(
+            if (notificationsGranted) android.R.drawable.presence_online else android.R.drawable.presence_busy
+        )
+
+        // Exact Alarms
+        val alarmsGranted = AlarmHelper.canScheduleExact(context)
+        binding.textStatusAlarms.text = "Status: ${if (alarmsGranted) "Allowed" else "Restricted"}"
+        binding.buttonFixAlarms.visibility = if (alarmsGranted) View.GONE else View.VISIBLE
+        binding.iconPermissionAlarms.setImageResource(
+            if (alarmsGranted) android.R.drawable.presence_online else android.R.drawable.presence_busy
+        )
+
+        // Battery Optimization
+        val batteryIgnored = AlarmHelper.isBatteryOptimizationIgnored(context)
+        binding.textStatusBattery.text = "Status: ${if (batteryIgnored) "Not Optimized (Good)" else "Optimized (May delay alerts)"}"
+        binding.buttonFixBattery.visibility = if (batteryIgnored) View.GONE else View.VISIBLE
+        binding.iconPermissionBattery.setImageResource(
+            if (batteryIgnored) android.R.drawable.presence_online else android.R.drawable.presence_busy
+        )
     }
 
     private fun setupNotificationSettings() {
@@ -96,13 +170,17 @@ class SettingsFragment : Fragment() {
         binding.switchReminder.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("reminder_enabled", isChecked).apply()
             if (isChecked) {
-                AlarmHelper.scheduleDailyReminder(requireContext(), hour, minute)
+                val h = sharedPreferences.getInt("reminder_hour", 8)
+                val m = sharedPreferences.getInt("reminder_minute", 0)
+                AlarmHelper.scheduleDailyReminder(requireContext(), h, m)
             } else {
                 AlarmHelper.cancelDailyReminder(requireContext())
             }
         }
 
         binding.buttonChangeTime.setOnClickListener {
+            val hCurrent = sharedPreferences.getInt("reminder_hour", 8)
+            val mCurrent = sharedPreferences.getInt("reminder_minute", 0)
             TimePickerDialog(requireContext(), { _, h, m ->
                 sharedPreferences.edit()
                     .putInt("reminder_hour", h)
@@ -112,7 +190,7 @@ class SettingsFragment : Fragment() {
                 if (binding.switchReminder.isChecked) {
                     AlarmHelper.scheduleDailyReminder(requireContext(), h, m)
                 }
-            }, hour, minute, false).show()
+            }, hCurrent, mCurrent, false).show()
         }
 
         // Phone Call Reminder
@@ -121,7 +199,10 @@ class SettingsFragment : Fragment() {
         binding.switchPhoneCallReminder.setOnCheckedChangeListener { _, isChecked ->
             sharedPreferences.edit().putBoolean("phone_call_reminder_enabled", isChecked).apply()
             if (isChecked) {
+                rescheduleAllCallAlarms()
                 Toast.makeText(requireContext(), "Phone call reminders enabled", Toast.LENGTH_SHORT).show()
+            } else {
+                cancelAllCallAlarms()
             }
         }
 
@@ -141,6 +222,24 @@ class SettingsFragment : Fragment() {
             }
             requireContext().sendBroadcast(intent)
             Toast.makeText(requireContext(), "Test call alert sent", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun rescheduleAllCallAlarms() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val schedules = db.callScheduleDao().getAllSchedules().first()
+            schedules.forEach { schedule ->
+                AlarmHelper.scheduleCallAlarm(requireContext(), schedule)
+            }
+        }
+    }
+
+    private fun cancelAllCallAlarms() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val schedules = db.callScheduleDao().getAllSchedules().first()
+            schedules.forEach { schedule ->
+                AlarmHelper.cancelCallAlarm(requireContext(), schedule.id)
+            }
         }
     }
 
@@ -191,7 +290,7 @@ class SettingsFragment : Fragment() {
             sharedPreferences.edit().putBoolean("demo_mode", isChecked).apply()
             MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Restart Required")
-                .setMessage(R.string.demo_mode_desc)
+                .setMessage("Please restart the app for Demo Mode changes to take effect.")
                 .setPositiveButton("OK", null)
                 .show()
         }
@@ -216,15 +315,49 @@ class SettingsFragment : Fragment() {
             adapter = contactAdapter
         }
 
-        binding.buttonAddContact.setOnClickListener {
-            checkPermissionAndPickContact()
-        }
-
         viewLifecycleOwner.lifecycleScope.launch {
             db.contactDao().getAllContacts().collect { contacts ->
                 contactAdapter.submitList(contacts)
             }
         }
+
+        binding.buttonAddContact.setOnClickListener {
+            showAddContactDialog()
+        }
+    }
+
+    private fun showAddContactDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Add Contact")
+            .setItems(arrayOf("Pick from Contacts", "Enter Manually")) { _, which ->
+                if (which == 0) {
+                    checkPermissionAndPickContact()
+                } else {
+                    showManualContactDialog()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun showManualContactDialog() {
+        val dialogBinding = DialogAddContactBinding.inflate(layoutInflater)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("New Contact")
+            .setView(dialogBinding.root)
+            .setPositiveButton("Add") { _, _ ->
+                val name = dialogBinding.edittextContactName.text.toString()
+                val phone = dialogBinding.edittextContactPhone.text.toString()
+                if (name.isNotBlank() && phone.isNotBlank()) {
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        db.contactDao().insertContact(Contact(name = name, phoneNumber = phone))
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "Name and phone are required", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun setupBackupRestore() {
@@ -241,13 +374,41 @@ class SettingsFragment : Fragment() {
     private fun performBackup(uri: Uri) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val checkIns = db.checkInDao().getAllCheckIns().first()
-                val contacts = db.contactDao().getAllContacts().first()
-                val schedules = db.callScheduleDao().getAllSchedules().first()
-                val commitments = db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getCompletedCommitments().first()
+                val checkIns = db.checkInDao().getAllCheckIns().first().map {
+                    CheckInDTO(it.id, it.date, it.scaleOption, it.feeling, it.feelingEmoji, it.feelingIntensity, it.description, it.callMade, it.isInboundCall, it.completedScheduleIds, it.liedToday, it.workingCommitments, it.temptationLevel)
+                }
+                val contacts = db.contactDao().getAllContacts().first().map {
+                    ContactDTO(it.id, it.name, it.phoneNumber)
+                }
+                val schedules = db.callScheduleDao().getAllSchedules().first().map {
+                    CallScheduleDTO(it.id, it.dayOfWeek, it.time, it.contactId, it.contactName, it.contactPhone, it.isInbound)
+                }
+                val commitments = (db.commitmentDao().getActiveCommitments().first() + db.commitmentDao().getPendingCommitments().first() + db.commitmentDao().getCompletedCommitments().first()).map {
+                    CommitmentDTO(
+                        id = it.id,
+                        title = it.title,
+                        description = it.description,
+                        frequency = it.frequency,
+                        interval = it.interval,
+                        daysOfWeekBitmask = it.daysOfWeekBitmask,
+                        dayOfMonth = it.dayOfMonth,
+                        targetCompletions = it.targetCompletions,
+                        completedCount = it.completedCount,
+                        totalCompletions = it.totalCompletions,
+                        isCompleted = null, // Logic replaced by status
+                        lastCompletionTimestamp = it.lastCompletionTimestamp,
+                        timestamp = it.timestamp,
+                        startDate = it.startDate,
+                        endDate = it.endDate,
+                        status = it.status
+                    )
+                }
+                val customFeelings = db.customFeelingDao().getAllCustomFeelings().first().map {
+                    CustomFeelingDTO(it.id, emoji = it.emoji, label = it.label, levelId = it.levelId)
+                }
                 val prefs = sharedPreferences.all
 
-                val backupData = BackupData(checkIns, contacts, schedules, commitments, prefs)
+                val backupData = BackupData(checkIns, contacts, schedules, commitments, customFeelings, prefs)
                 val json = Gson().toJson(backupData)
 
                 withContext(Dispatchers.IO) {
@@ -275,21 +436,86 @@ class SettingsFragment : Fragment() {
                 val backupData = Gson().fromJson(json, BackupData::class.java)
 
                 withContext(Dispatchers.IO) {
-                    // Restore Database
-                    backupData.checkIns.forEach { db.checkInDao().insertCheckIn(it) }
-                    backupData.contacts.forEach { db.contactDao().insertContact(it) }
-                    backupData.callSchedules.forEach { db.callScheduleDao().insertSchedule(it) }
-                    backupData.commitments.forEach { db.commitmentDao().insertCommitment(it) }
+                    // Restore Database with sanitization
+                    backupData.checkIns?.forEach { dto ->
+                        db.checkInDao().insertCheckIn(CheckIn(
+                            id = dto.id,
+                            date = dto.date ?: "",
+                            scaleOption = dto.scaleOption ?: "",
+                            feeling = dto.feeling ?: "",
+                            feelingEmoji = dto.feelingEmoji ?: "",
+                            feelingIntensity = dto.feelingIntensity ?: 0,
+                            description = dto.description ?: "",
+                            callMade = dto.callMade ?: false,
+                            isInboundCall = dto.isInboundCall ?: false,
+                            completedScheduleIds = dto.completedScheduleIds ?: "",
+                            liedToday = dto.liedToday ?: false,
+                            workingCommitments = dto.workingCommitments ?: false,
+                            temptationLevel = dto.temptationLevel ?: 0
+                        )) 
+                    }
+                    backupData.contacts?.forEach { dto ->
+                        db.contactDao().insertContact(Contact(
+                            id = dto.id,
+                            name = dto.name ?: "",
+                            phoneNumber = dto.phoneNumber ?: ""
+                        )) 
+                    }
+                    backupData.callSchedules?.forEach { dto ->
+                        db.callScheduleDao().insertSchedule(CallSchedule(
+                            id = dto.id,
+                            dayOfWeek = dto.dayOfWeek ?: "",
+                            time = dto.time ?: "",
+                            contactId = dto.contactId ?: 0,
+                            contactName = dto.contactName ?: "",
+                            contactPhone = dto.contactPhone ?: "",
+                            isInbound = dto.isInbound ?: false
+                        )) 
+                    }
+                    backupData.commitments?.forEach { dto ->
+                        // Migrate legacy isCompleted to status
+                        val initialStatus = if (dto.status != null) dto.status else if (dto.isCompleted == true) 2 else 0
+
+                        db.commitmentDao().insertCommitment(Commitment(
+                            id = dto.id,
+                            title = dto.title ?: "",
+                            description = dto.description ?: "",
+                            frequency = dto.frequency ?: "WEEKLY",
+                            interval = dto.interval ?: 1,
+                            daysOfWeekBitmask = dto.daysOfWeekBitmask ?: 0,
+                            dayOfMonth = dto.dayOfMonth ?: 1,
+                            targetCompletions = dto.targetCompletions ?: 1,
+                            completedCount = dto.completedCount ?: 0,
+                            totalCompletions = dto.totalCompletions ?: 0,
+                            lastCompletionTimestamp = dto.lastCompletionTimestamp ?: 0,
+                            timestamp = dto.timestamp ?: System.currentTimeMillis(),
+                            startDate = dto.startDate ?: System.currentTimeMillis(),
+                            endDate = dto.endDate,
+                            status = initialStatus
+                        )) 
+                    }
+                    backupData.customFeelings?.forEach { dto ->
+                        db.customFeelingDao().insertCustomFeeling(CustomFeeling(
+                            id = dto.id,
+                            emoji = dto.emoji ?: "",
+                            label = dto.label ?: dto.meaning ?: "",
+                            levelId = dto.levelId ?: "restoration"
+                        )) 
+                    }
 
                     // Restore Preferences
                     val editor = sharedPreferences.edit()
-                    backupData.preferences.forEach { (key, value) ->
+                    backupData.preferences?.forEach { (key, value) ->
                         when (value) {
                             is Boolean -> editor.putBoolean(key, value)
                             is Double -> {
-                                // GSON deserializes all numbers as Double by default
-                                if (value % 1.0 == 0.0) {
-                                    editor.putInt(key, value.toInt())
+                                val longValue = value.toLong()
+                                if (value == longValue.toDouble()) {
+                                    if (longValue in Int.MIN_VALUE..Int.MAX_VALUE) {
+                                        editor.putInt(key, longValue.toInt())
+                                    } else {
+                                        editor.putLong(key, longValue)
+                                    }
                                 } else {
                                     editor.putFloat(key, value.toFloat())
                                 }
@@ -335,7 +561,6 @@ class SettingsFragment : Fragment() {
         var phoneNumber: String? = null
         val contentResolver = requireContext().contentResolver
 
-        // Get Name
         contentResolver.query(contactUri, null, null, null, null)?.use { cursor ->
             if (cursor.moveToFirst()) {
                 val nameIndex = cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME)
@@ -345,7 +570,6 @@ class SettingsFragment : Fragment() {
                 if (idIndex != -1) {
                     val contactId = cursor.getString(idIndex)
                     
-                    // Get Phone Number
                     contentResolver.query(
                         ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                         null,

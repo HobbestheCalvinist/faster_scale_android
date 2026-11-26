@@ -1,11 +1,11 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.databinding.ItemContactBinding
+import com.fasterscale.app.databinding.ItemContactBinding
 
 class ContactAdapter(
     private val onDeleteClick: (Contact) -> Unit

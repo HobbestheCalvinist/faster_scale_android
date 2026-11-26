@@ -1,13 +1,14 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.myapplication.databinding.ItemCallHeaderBinding
-import com.example.myapplication.databinding.ItemCallScheduleBinding
+import com.fasterscale.app.databinding.ItemCallHeaderBinding
+import com.fasterscale.app.databinding.ItemCallScheduleBinding
 
 sealed class CallScheduleListItem {
     data class Header(val title: String) : CallScheduleListItem()
@@ -17,7 +18,8 @@ sealed class CallScheduleListItem {
 class CallScheduleAdapter(
     private val onEditClick: (CallSchedule) -> Unit,
     private val onDeleteClick: (CallSchedule) -> Unit,
-    private val onCallClick: (CallSchedule) -> Unit
+    private val onCallClick: (CallSchedule) -> Unit,
+    private val onTextClick: (CallSchedule) -> Unit
 ) : ListAdapter<CallScheduleListItem, RecyclerView.ViewHolder>(CallScheduleDiffCallback()) {
 
     companion object {
@@ -77,7 +79,13 @@ class CallScheduleAdapter(
             val iconRes = if (schedule.isInbound) R.drawable.ic_call_inbound else R.drawable.ic_call_outbound
             binding.buttonCall.setImageResource(iconRes)
             
+            // Hide call/text buttons if it's a "Somebody" placeholder (no phone number)
+            val hasPhone = schedule.contactPhone.isNotEmpty()
+            binding.buttonCall.visibility = if (hasPhone) View.VISIBLE else View.GONE
+            binding.buttonText.visibility = if (hasPhone) View.VISIBLE else View.GONE
+            
             binding.buttonCall.setOnClickListener { onCallClick(schedule) }
+            binding.buttonText.setOnClickListener { onTextClick(schedule) }
             
             itemView.setOnLongClickListener {
                 showPopupMenu(schedule)

@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/MainTabsFragment"
-        android:name="com.example.myapplication.MainTabsFragment"
+        android:name="com.fasterscale.app.MainTabsFragment"
         android:label="@string/app_name"
         tools:layout="@layout/fragment_main_tabs">
         <action
@@ -20,35 +20,40 @@
 
     <fragment
         android:id="@+id/SettingsFragment"
-        android:name="com.example.myapplication.SettingsFragment"
+        android:name="com.fasterscale.app.SettingsFragment"
         android:label="@string/settings_fragment_label"
         tools:layout="@layout/fragment_settings" />
 
     <fragment
         android:id="@+id/AboutFragment"
-        android:name="com.example.myapplication.AboutFragment"
+        android:name="com.fasterscale.app.AboutFragment"
         android:label="About"
         tools:layout="@layout/fragment_about" />
 
     <!-- These remain for deep linking or backward compatibility if needed, but are primarily hosted in ViewPager -->
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="com.example.myapplication.CheckinFragment"
+        android:name="com.fasterscale.app.CheckinFragment"
         android:label="@string/first_fragment_label" />
 
     <fragment
         android:id="@+id/HistoryFragment"
-        android:name="com.example.myapplication.HistoryFragment"
+        android:name="com.fasterscale.app.HistoryFragment"
         android:label="@string/history_fragment_label" />
 
     <fragment
+        android:id="@+id/IntrospectionFragment"
+        android:name="com.fasterscale.app.IntrospectionFragment"
+        android:label="@string/introspection_fragment_label" />
+
+    <fragment
         android:id="@+id/CallScheduleFragment"
-        android:name="com.example.myapplication.CallScheduleFragment"
+        android:name="com.fasterscale.app.CallScheduleFragment"
         android:label="@string/call_schedule_fragment_label" />
 
     <fragment
         android:id="@+id/CommitmentFragment"
-        android:name="com.example.myapplication.CommitmentFragment"
+        android:name="com.fasterscale.app.CommitmentFragment"
         android:label="Commitment to Change" />
 
 </navigation>

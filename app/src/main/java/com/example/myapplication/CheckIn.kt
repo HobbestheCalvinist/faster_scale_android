@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import androidx.room.Entity
 import androidx.room.Index
@@ -12,8 +12,14 @@ data class CheckIn(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val date: String = "",
     val scaleOption: String = "",
+    val feeling: String = "",
+    val feelingEmoji: String = "",
+    val feelingIntensity: Int = 0,
     val description: String = "",
     val callMade: Boolean = false,
     val isInboundCall: Boolean = false,
-    val completedScheduleIds: String = ""
+    val completedScheduleIds: String = "",
+    val liedToday: Boolean = false,
+    val workingCommitments: Boolean = false,
+    val temptationLevel: Int = 0
 )

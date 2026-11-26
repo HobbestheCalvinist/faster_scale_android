@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

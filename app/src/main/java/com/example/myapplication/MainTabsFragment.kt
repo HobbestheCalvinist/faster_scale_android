@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.widget.ViewPager2
-import com.example.myapplication.databinding.FragmentMainTabsBinding
+import com.fasterscale.app.databinding.FragmentMainTabsBinding
 
 class MainTabsFragment : Fragment() {
 
@@ -39,8 +39,9 @@ class MainTabsFragment : Fragment() {
             when (item.itemId) {
                 R.id.FirstFragment -> binding.viewPager.currentItem = 0
                 R.id.HistoryFragment -> binding.viewPager.currentItem = 1
-                R.id.CallScheduleFragment -> binding.viewPager.currentItem = 2
-                R.id.CommitmentFragment -> binding.viewPager.currentItem = 3
+                R.id.IntrospectionFragment -> binding.viewPager.currentItem = 2
+                R.id.CallScheduleFragment -> binding.viewPager.currentItem = 3
+                R.id.CommitmentFragment -> binding.viewPager.currentItem = 4
             }
             true
         }
@@ -94,8 +95,9 @@ class MainTabsFragment : Fragment() {
         val title = when (position) {
             0 -> getString(R.string.mood_tracker_title)
             1 -> getString(R.string.history_title)
-            2 -> getString(R.string.call_schedule_title)
-            3 -> "Commitment to Change"
+            2 -> getString(R.string.introspection_title)
+            3 -> getString(R.string.call_schedule_title)
+            4 -> "Commitment to Change"
             else -> getString(R.string.app_name)
         }
         (activity as? MainActivity)?.supportActionBar?.title = title

@@ -25,7 +25,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="8dp"
-                android:text="Active Commitments"
+                android:text="Active Goals"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorPrimary"
                 android:textStyle="bold" />
@@ -35,7 +35,27 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                tools:itemCount="3"
+                tools:itemCount="2"
+                tools:listitem="@layout/item_commitment" />
+
+            <TextView
+                android:id="@+id/textview_pending_header"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="8dp"
+                android:text="Pending Next Iteration"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorSecondary"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview_pending_commitments"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:nestedScrollingEnabled="false"
+                tools:itemCount="1"
                 tools:listitem="@layout/item_commitment" />
 
             <TextView
@@ -45,7 +65,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="8dp"
-                android:text="Completed"
+                android:text="Completed Forever"
                 android:textAppearance="?attr/textAppearanceTitleMedium"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textStyle="bold" />

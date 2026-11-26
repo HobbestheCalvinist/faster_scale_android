@@ -1,6 +1,7 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,8 +11,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
-import com.example.myapplication.databinding.DialogCheckInBinding
-import com.example.myapplication.databinding.ItemCheckInCallBinding
+import com.fasterscale.app.databinding.DialogCheckInBinding
+import com.fasterscale.app.databinding.ItemCheckInCallBinding
 import com.google.android.material.chip.Chip
 import com.google.android.material.materialswitch.MaterialSwitch
 import kotlinx.coroutines.flow.firstOrNull
@@ -68,6 +69,7 @@ class CheckInDialogFragment : DialogFragment() {
         binding.textviewDialogTitle.text = getString(R.string.check_in_title_format, dateFormatter.format(selectedDate.time))
 
         setupDropdown()
+        setupCollapsibleBehaviors()
         loadExistingCheckIn()
 
         binding.buttonSave.setOnClickListener {
@@ -92,9 +94,24 @@ class CheckInDialogFragment : DialogFragment() {
         }
     }
 
+    private fun setupCollapsibleBehaviors() {
+        binding.layoutBehaviorsHeader.setOnClickListener {
+            val isExpanded = binding.layoutBehaviorsContent.visibility == View.VISIBLE
+            if (isExpanded) {
+                binding.layoutBehaviorsContent.visibility = View.GONE
+                binding.imageExpandBehaviors.animate().rotation(0f).start()
+            } else {
+                binding.layoutBehaviorsContent.visibility = View.VISIBLE
+                binding.imageExpandBehaviors.animate().rotation(180f).start()
+            }
+        }
+    }
+
     private fun updateBehaviorsSection(scaleOption: String) {
         val context = context ?: return
-        binding.layoutBehaviorsSection.visibility = View.VISIBLE
+        // Keep header visible, but content depends on manual expansion OR we can auto-expand on selection if we want
+        // For now, let's just make sure the header is visible if a scale is selected
+        binding.layoutBehaviorsHeader.visibility = View.VISIBLE
         binding.chipgroupBehaviors.removeAllViews()
 
         val behaviorsResId = when {
@@ -195,6 +212,20 @@ class CheckInDialogFragment : DialogFragment() {
                                 }
                             }
 
+                            itemBinding.buttonTextNow.setOnClickListener {
+                                try {
+                                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("smsto:${schedule.contactPhone}")
+                                        putExtra("sms_body", getString(R.string.default_text_message))
+                                    }
+                                    startActivity(intent)
+                                    // Auto-toggle checkmark when texting
+                                    itemBinding.switchCallMade.isChecked = true
+                                } catch (e: Exception) {
+                                    Toast.makeText(requireContext(), "Could not open texting app", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+
                             itemBinding.switchCallMade.isChecked = existingCompletedIds.contains(schedule.id.toString())
                             callSwitches[schedule.id] = itemBinding.switchCallMade
                         }
@@ -223,6 +254,9 @@ class CheckInDialogFragment : DialogFragment() {
                             b.edittextDescription.setText(checkIn.description)
                             updateBehaviorsSection(checkIn.scaleOption)
                         }
+                        b.switchLied.isChecked = checkIn.liedToday
+                        b.switchCommitments.isChecked = checkIn.workingCommitments
+                        b.sliderTemptation.value = checkIn.temptationLevel.toFloat()
                         existingCompletedIds = checkIn.completedScheduleIds.split(",").filter { it.isNotBlank() }.toSet()
                     }
                     checkScheduledCalls()
@@ -250,6 +284,10 @@ class CheckInDialogFragment : DialogFragment() {
         val completedIdsString = completedIds.joinToString(",")
 
         val firstCheckedId = completedIds.firstOrNull()
+        
+        val liedToday = binding.switchLied.isChecked
+        val workingCommitments = binding.switchCommitments.isChecked
+        val temptationLevel = binding.sliderTemptation.value.toInt()
 
         viewLifecycleOwner.lifecycleScope.launch {
             try {
@@ -264,22 +302,31 @@ class CheckInDialogFragment : DialogFragment() {
                         description = description, 
                         callMade = callMade,
                         isInboundCall = finalIsInbound,
-                        completedScheduleIds = completedIdsString
+                        completedScheduleIds = completedIdsString,
+                        liedToday = liedToday,
+                        workingCommitments = workingCommitments,
+                        temptationLevel = temptationLevel
                     )
                 } else {
                     CheckIn(
                         date = date, 
                         scaleOption = scaleOption, 
                         description = description, 
-                        callMade = callMade,
+                        callMade = callMade, 
                         isInboundCall = finalIsInbound,
-                        completedScheduleIds = completedIdsString
+                        completedScheduleIds = completedIdsString,
+                        liedToday = liedToday,
+                        workingCommitments = workingCommitments,
+                        temptationLevel = temptationLevel
                     )
                 }
 
                 currentDb.checkInDao().insertCheckIn(checkIn)
-                context?.let {
-                    Toast.makeText(it, "Check-in saved!", Toast.LENGTH_SHORT).show()
+                
+                // Update Widget immediately
+                context?.let { ctx ->
+                    CalendarWidget.updateAllWidgets(ctx)
+                    Toast.makeText(ctx, "Check-in saved!", Toast.LENGTH_SHORT).show()
                 }
                 dismiss()
             } catch (e: Exception) {

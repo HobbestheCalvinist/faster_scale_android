@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.content.Context
 import android.content.Intent
@@ -15,7 +15,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.myapplication.databinding.FragmentHistoryBinding
+import com.fasterscale.app.databinding.FragmentHistoryBinding
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -208,6 +208,7 @@ class HistoryFragment : Fragment() {
             |Faster Scale Check-in
             |Date: ${checkIn.date}
             |Level: ${checkIn.scaleOption}
+            |Temptation: ${checkIn.temptationLevel}/5
             |Phone Call: $callStatus
             |Notes: 
             |${checkIn.description}
@@ -224,6 +225,7 @@ class HistoryFragment : Fragment() {
 
             report.append("Date: ${checkIn.date}\n")
             report.append("Level: ${checkIn.scaleOption}\n")
+            report.append("Temptation: ${checkIn.temptationLevel}/5\n")
             report.append("Phone Call: $callStatus\n")
             if (checkIn.description.isNotBlank()) {
                 report.append("Notes: ${checkIn.description}\n")
@@ -289,6 +291,8 @@ class HistoryFragment : Fragment() {
             .setPositiveButton(R.string.menu_delete) { _, _ ->
                 viewLifecycleOwner.lifecycleScope.launch {
                     db.checkInDao().deleteCheckIn(checkIn)
+                    // Update Widget immediately
+                    CalendarWidget.updateAllWidgets(requireContext())
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

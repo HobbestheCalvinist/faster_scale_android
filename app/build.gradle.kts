@@ -6,26 +6,30 @@ plugins {
 }
 
 android {
-    namespace = "com.example.myapplication"
-    compileSdk = 35
+    // REVERTED to match your actual folder/package structure
+    namespace = "com.fasterscale.app"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.myapplication"
+        // This is the UNIQUE ID for the Play Store.
+        // It stays as your custom domain.
+        applicationId = "com.fasterscale.app"
         minSdk = 24
-        targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        targetSdk = 36
+        versionCode = 5
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

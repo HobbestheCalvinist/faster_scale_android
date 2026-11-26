@@ -1,4 +1,4 @@
-package com.example.myapplication
+package com.fasterscale.app
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,13 +6,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
-import com.example.myapplication.databinding.FragmentFirstBinding
+import com.fasterscale.app.databinding.FragmentFirstBinding
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -91,12 +92,15 @@ class CheckinFragment : Fragment() {
     }
 
     private fun refreshCalendarGrid() {
-        val days = mutableListOf<com.example.myapplication.CalendarDay>()
+        val days = mutableListOf<CalendarDay>()
         
         // Find start of 4-week window
         val startDayOfWeek = sharedPreferences.getInt("start_day_of_week", Calendar.SUNDAY)
         val cal = Calendar.getInstance()
         cal.clearTime()
+        
+        // Update day headers to match the start day setting
+        updateDayHeaders(startDayOfWeek)
         
         // Move to start of current week
         while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
@@ -115,7 +119,7 @@ class CheckinFragment : Fragment() {
             val checkIn = dayCheckInMap[dateStr]
             val schedule = scheduleMap[dayName]
             
-            days.add(com.example.myapplication.CalendarDay(
+            days.add(CalendarDay(
                 dayOfMonth = cal.get(Calendar.DAY_OF_MONTH).toString(),
                 dateString = dateStr,
                 scaleOption = checkIn?.scaleOption,
@@ -140,6 +144,22 @@ class CheckinFragment : Fragment() {
             }
         }
         binding.calendarRecyclerView.adapter = calendarAdapter
+    }
+
+    private fun updateDayHeaders(startDayOfWeek: Int) {
+        val cal = Calendar.getInstance()
+        // Find the next occurrence of startDayOfWeek to get correct labels
+        while (cal.get(Calendar.DAY_OF_WEEK) != startDayOfWeek) {
+            cal.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        val dayFormatter = SimpleDateFormat("EEE", Locale.US)
+        
+        for (i in 0 until 7) {
+            val dayName = dayFormatter.format(cal.time)
+            val textView = binding.layoutDayHeaders.getChildAt(i) as? TextView
+            textView?.text = dayName
+            cal.add(Calendar.DAY_OF_YEAR, 1)
+        }
     }
 
     private fun isSameDay(cal1: Calendar, cal2: Calendar): Boolean {
@@ -175,6 +195,10 @@ class CheckinFragment : Fragment() {
                 
                 binding.textviewSummaryDescription.text = checkIn.description
                 binding.textviewSummaryDescription.visibility = if (checkIn.description.isEmpty()) View.GONE else View.VISIBLE
+                
+                // Update new indicators
+                binding.textviewSummaryLied.visibility = if (checkIn.liedToday) View.VISIBLE else View.GONE
+                binding.textviewSummaryCommitments.visibility = if (checkIn.workingCommitments) View.VISIBLE else View.GONE
                 
                 if (checkIn.callMade) {
                     binding.textviewSummaryCall.visibility = View.VISIBLE
